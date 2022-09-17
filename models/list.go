@@ -1,19 +1,41 @@
 package models
 
 import (
+	"astroapp/config"
 	"astroapp/habit"
-	"fmt"
 
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
+var docStyle = lipgloss.NewStyle()
+
+type item habit.Habit
+
+func (i item) Title() string { return i.Name }
+func (i item) Description() string {
+	if len(i.Activites) == 0 {
+		return "no activites"
+	}
+
+	return "lastest activity on " + i.ToHabit().LatestActivity().Format(config.TimeFormat)
+}
+func (i item) FilterValue() string  { return i.Name }
+func (i item) ToHabit() habit.Habit { return habit.Habit(i) }
+
 type List struct {
-	habits []habit.Habit
-	cursor int
+	list list.Model
 }
 
 func NewList(habits []habit.Habit) List {
-	return List{habits, 0}
+	items := make([]list.Item, len(habits))
+	for i, h := range habits {
+		items[i] = item(h)
+	}
+	list := list.New(items, list.NewDefaultDelegate(), 0, 5)
+	list.Title = "Habits"
+	return List{list}
 }
 
 func (m List) Init() tea.Cmd {
@@ -21,38 +43,22 @@ func (m List) Init() tea.Cmd {
 }
 
 func (m List) View() string {
-	s := "habits:\n"
-
-	for i, h := range m.habits {
-		cursor := " "
-		if m.cursor == i {
-			cursor = ">"
-		}
-		s += fmt.Sprintf("%s %s\n", cursor, h.Name)
-	}
-
-	return s
+	return docStyle.Render(m.list.View())
 }
 
 func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-
+	case tea.WindowSizeMsg:
+		h, v := docStyle.GetFrameSize()
+		m.list.SetSize(msg.Width-h, msg.Height-v)
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "ctrl+d", "q":
-			return m, tea.Quit
-		case "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		case "j":
-			if m.cursor < len(m.habits)-1 {
-				m.cursor++
-			}
-		case "enter", " ":
-			return NewShowModel(m.habits[m.cursor], m), nil
+		case "enter":
+			return NewShow(m.list.SelectedItem().(item).ToHabit(), m), nil
 		}
 	}
 
-	return m, nil
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
+	return m, cmd
 }

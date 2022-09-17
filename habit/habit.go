@@ -12,3 +12,11 @@ type Habit struct {
 	Name      string     `json:"name"`
 	Activites []Activity `json:"activities"`
 }
+
+func (h Habit) LatestActivity() time.Time {
+	if len(h.Activites) == 0 {
+		return time.Time{}
+	}
+
+	return h.Activites[len(h.Activites)-1].CreatedAt
+}

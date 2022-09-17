@@ -3,6 +3,7 @@ package habit
 import (
 	"encoding/json"
 	"io"
+	"sort"
 )
 
 type Client struct {
@@ -28,6 +29,15 @@ func (d *Client) List() ([]Habit, error) {
 	}
 
 	err = json.Unmarshal(str, &data)
+	if err != nil {
+		return data, err
+	}
+
+	for _, h := range data {
+		sort.SliceStable(h.Activites, func(i, j int) bool {
+			return h.Activites[i].CreatedAt.Before(h.Activites[j].CreatedAt)
+		})
+	}
 
 	return data, err
 }

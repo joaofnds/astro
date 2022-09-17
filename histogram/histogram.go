@@ -1,31 +1,24 @@
 package histogram
 
 import (
+	"astroapp/config"
 	"astroapp/habit"
 	"math"
 	"strings"
 	"time"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
-const (
-	TimeFrameInDays = 52 * 7
-
-	graphic = "⬛"
-
-	selectedGraphic    = "⭕"
-	selectedBackground = "\033[48;2;0;0;0m"
-
-	// \033[38;2;<r>;<g>;<b>m
-	color0 = "\033[38;2;235;237;240m"
-	color1 = "\033[38;2;155;233;168m"
-	color2 = "\033[38;2;64;196;99m"
-	color3 = "\033[38;2;48;161;78m"
-	color4 = "\033[38;2;33;110;57m"
-
-	resetStyle = "\033[m"
+var (
+	colors = []lipgloss.Style{
+		lipgloss.NewStyle().Foreground(lipgloss.Color("#ebedf0")),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("#0e4429")),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("#006d32")),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("#26a641")),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("#39d353")),
+	}
 )
-
-var colors = []string{color0, color1, color2, color3, color4}
 
 func fitter(min, max, buckets int) func(n int) int {
 	i := ((float64(buckets) - float64(min)) / (float64(max) - float64(min)))
@@ -35,7 +28,7 @@ func fitter(min, max, buckets int) func(n int) int {
 }
 
 func Histogram(t time.Time, h habit.Habit, selected int) string {
-	hist := make([]int, TimeFrameInDays)
+	hist := make([]int, config.TimeFrameInDays)
 	min, max := 0, 0
 	for _, a := range h.Activites {
 		diffInDays := int(a.CreatedAt.Sub(t).Hours() / 24)
@@ -55,26 +48,26 @@ func Histogram(t time.Time, h habit.Habit, selected int) string {
 	fit := fitter(min, max, len(colors)-1)
 
 	var s strings.Builder
-	s.Grow(TimeFrameInDays*len(colors[0]+graphic+resetStyle) + 52)
+	s.Grow(config.TimeFrameInDays*10 + 52)
 	for weekday := 0; weekday < 7; weekday++ {
 		switch weekday {
 		case 1:
-			s.WriteString("mon ")
+			s.WriteString("Mon ")
 		case 3:
-			s.WriteString("wed ")
+			s.WriteString("Wed ")
 		case 5:
-			s.WriteString("fri ")
+			s.WriteString("Fri ")
 		default:
 			s.WriteString("    ")
 		}
 
 		for week := 0; week < 52; week++ {
 			day := weekday + week*7
-			g := graphic
+			g := config.Graphic
 			if day == selected {
-				g = selectedGraphic
+				g = config.SelectedGraphic
 			}
-			s.WriteString(colors[fit(hist[day])] + g + resetStyle)
+			s.WriteString(colors[fit(hist[day])].Render(g))
 		}
 		s.WriteString("\n")
 	}
