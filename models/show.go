@@ -29,21 +29,22 @@ func (m Show) View() string {
 	selectedDate := t.AddDate(0, 0, m.selected)
 	s := new(strings.Builder)
 
-	fmt.Fprintf(s, "habits: %s\n", m.habit.Name)
-	fmt.Fprintf(s, "id: %d\n", m.habit.Id)
-
-	fmt.Fprintf(s, "activities:  %s\n", selectedDate.Format("2006-01-02"))
+	fmt.Fprintf(s, "Habit: %s\n", m.habit.Name)
 
 	s.WriteString(histogram.Histogram(m.habit, m.selected))
 
-	s.WriteString("activities on this day\n")
+	var count int
 	for _, a := range m.habit.Activites {
 		if histogram.SameDay(a.CreatedAt, selectedDate) {
-			fmt.Fprintf(s, " - %s\n", a.CreatedAt)
+			count++
 		}
 	}
+	w := "activities"
+	if count == 1 {
+		w = "activity"
+	}
+	fmt.Fprintf(s, "%d %s on %s\n", count, w, selectedDate.Format("Jan 02, 2006"))
 
-	s.WriteString("\npress 'q' to go back\n")
 	return s.String()
 }
 
