@@ -2,6 +2,12 @@ package histogram
 
 import "time"
 
+func TimeFrame() (time.Time, time.Time) {
+	end := EndOfWeek(TruncateDay(time.Now()))
+	beg := end.AddDate(0, 0, -TimeFrameInDays)
+	return beg, end
+}
+
 func TruncateDay(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }

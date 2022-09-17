@@ -10,7 +10,7 @@ import (
 const (
 	TimeFrameInDays = 52 * 7
 
-	graphic            = "⬛"
+	graphic = "⬛"
 
 	selectedGraphic    = "⭕"
 	selectedBackground = "\033[48;2;0;0;0m"
@@ -28,15 +28,15 @@ const (
 var colors = []string{color0, color1, color2, color3, color4}
 
 func fitter(min, max, buckets int) func(n int) int {
+	i := ((float64(buckets) - float64(min)) / (float64(max) - float64(min)))
 	return func(n int) int {
-		return int(math.Floor(((float64(buckets) - float64(min)) / (float64(max) - float64(min))) * float64(n)))
+		return int(math.Floor(i * float64(n)))
 	}
 }
 
-func Histogram(h habit.Habit, selected int) string {
-	min, max := 0, 0
+func Histogram(t time.Time, h habit.Habit, selected int) string {
 	hist := make([]int, TimeFrameInDays)
-	t := EndOfWeek(TruncateDay(time.Now())).AddDate(0, 0, -TimeFrameInDays)
+	min, max := 0, 0
 	for _, a := range h.Activites {
 		diffInDays := int(a.CreatedAt.Sub(t).Hours() / 24)
 		if diffInDays >= 0 {
@@ -55,15 +55,26 @@ func Histogram(h habit.Habit, selected int) string {
 	fit := fitter(min, max, len(colors)-1)
 
 	var s strings.Builder
-	for i := 0; i < 7; i++ {
-		for j := 0; j < 52; j++ {
-			i := i + j*7
-			n := hist[i]
-			if i == selected {
-				s.WriteString(colors[fit(n)] + selectedGraphic + resetStyle)
-			} else {
-				s.WriteString(colors[fit(n)] + graphic + resetStyle)
+	s.Grow(TimeFrameInDays*len(colors[0]+graphic+resetStyle) + 52)
+	for weekday := 0; weekday < 7; weekday++ {
+		switch weekday {
+		case 1:
+			s.WriteString("mon ")
+		case 3:
+			s.WriteString("wed ")
+		case 5:
+			s.WriteString("fri ")
+		default:
+			s.WriteString("    ")
+		}
+
+		for week := 0; week < 52; week++ {
+			day := weekday + week*7
+			g := graphic
+			if day == selected {
+				g = selectedGraphic
 			}
+			s.WriteString(colors[fit(hist[day])] + g + resetStyle)
 		}
 		s.WriteString("\n")
 	}
