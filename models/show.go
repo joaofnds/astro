@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -19,7 +20,37 @@ var (
 		Background(lipgloss.Color("#5F5FD7")).
 		Foreground(lipgloss.Color("#FFFFD7")).
 		Padding(0, 1)
+	keymap = KeyMap{
+		Quit: key.NewBinding(
+			key.WithKeys("q"),
+			key.WithHelp("q", "quit"),
+		),
+		Up: key.NewBinding(
+			key.WithKeys("k"),
+			key.WithHelp("k", "+day"),
+		),
+		Down: key.NewBinding(
+			key.WithKeys("j"),
+			key.WithHelp("j", "-day"),
+		),
+		Left: key.NewBinding(
+			key.WithKeys("h"),
+			key.WithHelp("h", "-week"),
+		),
+		Right: key.NewBinding(
+			key.WithKeys("l"),
+			key.WithHelp("l", "+week"),
+		),
+	}
 )
+
+type KeyMap struct {
+	Quit  key.Binding
+	Up    key.Binding
+	Down  key.Binding
+	Left  key.Binding
+	Right key.Binding
+}
 
 type Show struct {
 	habit    habit.Habit
@@ -51,30 +82,28 @@ func (m Show) View() string {
 func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "l": // right
-			if m.selected+7 < config.TimeFrameInDays {
-				m.selected += 7
-			}
-		case "h": // left
-			if m.selected-7 >= 0 {
-				m.selected -= 7
-			}
-		case "j": // down
-			if m.selected+1 < config.TimeFrameInDays {
-				m.selected++
-			}
-		case "k": // up
+		switch {
+		case key.Matches(msg, keymap.Up):
 			if m.selected > 0 {
 				m.selected--
 			}
-		case "q":
+		case key.Matches(msg, keymap.Down):
+			if m.selected+1 < config.TimeFrameInDays {
+				m.selected++
+			}
+		case key.Matches(msg, keymap.Left):
+			if m.selected-7 >= 0 {
+				m.selected -= 7
+			}
+		case key.Matches(msg, keymap.Right):
+			if m.selected+7 < config.TimeFrameInDays {
+				m.selected += 7
+			}
+		case key.Matches(msg, keymap.Quit):
 			if m.parent == nil {
 				return m, tea.Quit
 			}
 			return m.parent, nil
-		case "ctrl+c", "ctrl+d":
-			return m, tea.Quit
 		}
 	}
 
