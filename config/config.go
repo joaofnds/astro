@@ -5,5 +5,5 @@ const (
 	TimeFrameInDays = 52 * 7
 
 	Graphic         = "⬛"
-	SelectedGraphic = "⭕"
+	SelectedGraphic = "⚫"
 )
