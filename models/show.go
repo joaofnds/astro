@@ -29,8 +29,9 @@ type Show struct {
 }
 
 func NewShow(habit habit.Habit, parent tea.Model) Show {
-	t, _ := histogram.TimeFrame()
-	return Show{habit, parent, config.TimeFrameInDays - 1, t}
+	t, _ := date.TimeFrame()
+	selected := date.DiffInDays(t, date.Today())
+	return Show{habit, parent, selected, t}
 }
 
 func (m Show) Init() tea.Cmd {
