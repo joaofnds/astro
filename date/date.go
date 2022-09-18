@@ -1,22 +1,20 @@
-package histogram
+package date
 
 import (
 	"astroapp/config"
 	"time"
 )
 
-func TimeFrame() (time.Time, time.Time) {
-	end := EndOfWeek(TruncateDay(time.Now()))
-	beg := end.AddDate(0, 0, -config.TimeFrameInDays)
-	return beg, end
+func Today() time.Time {
+	return TruncateDay(time.Now())
 }
 
 func TruncateDay(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
 
-func diffInDays(t1, t2 time.Time) int {
-	diff := int(t1.Sub(t2) / 24)
+func DiffInDays(t1, t2 time.Time) int {
+	diff := int(t1.Sub(t2).Hours() / 24)
 
 	if diff < 0 {
 		return -diff
@@ -33,4 +31,10 @@ func SameDay(t1, t2 time.Time) bool {
 	return t1.Day() == t2.Day() &&
 		t1.Month() == t2.Month() &&
 		t1.Year() == t2.Year()
+}
+
+func TimeFrame() (time.Time, time.Time) {
+	end := EndOfWeek(Today())
+	beg := end.AddDate(0, 0, -config.TimeFrameInDays)
+	return beg, end
 }

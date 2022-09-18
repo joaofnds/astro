@@ -2,6 +2,7 @@ package models
 
 import (
 	"astroapp/config"
+	"astroapp/date"
 	"astroapp/habit"
 	"astroapp/histogram"
 	"fmt"
@@ -82,7 +83,7 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func activitiesOnDate(h habit.Habit, t time.Time) string {
 	var count int
 	for _, a := range h.Activites {
-		if histogram.SameDay(a.CreatedAt, t) {
+		if date.SameDay(a.CreatedAt, t) {
 			count++
 		}
 	}

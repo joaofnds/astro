@@ -2,6 +2,7 @@ package histogram
 
 import (
 	"astroapp/config"
+	"astroapp/date"
 	"astroapp/habit"
 	"math"
 	"strings"
@@ -21,7 +22,7 @@ var (
 )
 
 func fitter(min, max, buckets int) func(n int) int {
-	i := ((float64(buckets) - float64(min)) / (float64(max) - float64(min)))
+	i := float64(buckets - min) / float64(max - min)
 	return func(n int) int {
 		return int(math.Floor(i * float64(n)))
 	}
@@ -31,7 +32,7 @@ func Histogram(t time.Time, h habit.Habit, selected int) string {
 	hist := make([]int, config.TimeFrameInDays)
 	min, max := 0, 0
 	for _, a := range h.Activites {
-		diffInDays := int(a.CreatedAt.Sub(t).Hours() / 24)
+		diffInDays := date.DiffInDays(t, a.CreatedAt)
 		if diffInDays >= 0 {
 			hist[diffInDays]++
 
@@ -48,7 +49,7 @@ func Histogram(t time.Time, h habit.Habit, selected int) string {
 	fit := fitter(min, max, len(colors)-1)
 
 	var s strings.Builder
-	s.Grow(config.TimeFrameInDays*10 + 52)
+	s.Grow(config.TimeFrameInDays * 30)
 	for weekday := 0; weekday < 7; weekday++ {
 		switch weekday {
 		case 1:
