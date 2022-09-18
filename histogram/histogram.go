@@ -13,10 +13,10 @@ import (
 var (
 	colors = []lipgloss.Style{
 		lipgloss.NewStyle().Foreground(lipgloss.Color("#ebedf0")),
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#0e4429")),
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#006d32")),
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#26a641")),
 		lipgloss.NewStyle().Foreground(lipgloss.Color("#39d353")),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("#26a641")),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("#006d32")),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("#0e4429")),
 	}
 )
 
