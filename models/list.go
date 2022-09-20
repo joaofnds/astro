@@ -15,11 +15,11 @@ type item habit.Habit
 
 func (i item) Title() string { return i.Name }
 func (i item) Description() string {
-	if len(i.Activites) == 0 {
-		return "no activites"
+	if len(i.Activities) == 0 {
+		return "no activities"
 	}
 
-	return "lastest activity on " + i.ToHabit().LatestActivity().Format(config.TimeFormat)
+	return "latest activity on " + i.ToHabit().LatestActivity().Format(config.TimeFormat)
 }
 func (i item) FilterValue() string  { return i.Name }
 func (i item) ToHabit() habit.Habit { return habit.Habit(i) }

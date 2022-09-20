@@ -22,7 +22,7 @@ var (
 )
 
 func fitter(min, max, buckets int) func(n int) int {
-	i := float64(buckets - min) / float64(max - min)
+	i := float64(buckets-min) / float64(max-min)
 	return func(n int) int {
 		return int(math.Floor(i * float64(n)))
 	}
@@ -31,7 +31,7 @@ func fitter(min, max, buckets int) func(n int) int {
 func Histogram(t time.Time, h habit.Habit, selected int) string {
 	hist := make([]int, config.TimeFrameInDays)
 	min, max := 0, 0
-	for _, a := range h.Activites {
+	for _, a := range h.Activities {
 		diffInDays := date.DiffInDays(t, a.CreatedAt)
 		if diffInDays >= 0 {
 			hist[diffInDays]++

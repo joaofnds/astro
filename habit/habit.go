@@ -8,15 +8,15 @@ type Activity struct {
 }
 
 type Habit struct {
-	Id        int        `json:"id"`
-	Name      string     `json:"name"`
-	Activites []Activity `json:"activities"`
+	Id         int        `json:"id"`
+	Name       string     `json:"name"`
+	Activities []Activity `json:"activities"`
 }
 
 func (h Habit) LatestActivity() time.Time {
-	if len(h.Activites) == 0 {
+	if len(h.Activities) == 0 {
 		return time.Time{}
 	}
 
-	return h.Activites[len(h.Activites)-1].CreatedAt
+	return h.Activities[len(h.Activities)-1].CreatedAt
 }

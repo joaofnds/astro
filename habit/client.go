@@ -34,8 +34,8 @@ func (d *Client) List() ([]Habit, error) {
 	}
 
 	for _, h := range data {
-		sort.SliceStable(h.Activites, func(i, j int) bool {
-			return h.Activites[i].CreatedAt.Before(h.Activites[j].CreatedAt)
+		sort.SliceStable(h.Activities, func(i, j int) bool {
+			return h.Activities[i].CreatedAt.Before(h.Activities[j].CreatedAt)
 		})
 	}
 

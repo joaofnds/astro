@@ -138,7 +138,7 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func activitiesOnDate(h habit.Habit, t time.Time) string {
 	var count int
-	for _, a := range h.Activites {
+	for _, a := range h.Activities {
 		if date.SameDay(a.CreatedAt, t) {
 			count++
 		}
