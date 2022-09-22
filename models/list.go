@@ -6,10 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
-
-var docStyle = lipgloss.NewStyle()
 
 type item habit.Habit
 
@@ -43,7 +40,7 @@ func (m List) Init() tea.Cmd {
 }
 
 func (m List) View() string {
-	return docStyle.Render(m.list.View())
+	return m.list.View()
 }
 
 func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
