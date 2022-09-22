@@ -22,6 +22,11 @@ var (
 )
 
 func fitter(min, max, buckets int) func(n int) int {
+	if min == 0 && max == 0 {
+		return func(_ int) int {
+			return 0
+		}
+	}
 	i := float64(buckets-min) / float64(max-min)
 	return func(n int) int {
 		return int(math.Floor(i * float64(n)))
