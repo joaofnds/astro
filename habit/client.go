@@ -39,6 +39,10 @@ func (d *client) List() ([]*Habit, error) {
 		return data, err
 	}
 
+	sort.SliceStable(data, func(i, j int) bool {
+		return data[i].Name < data[j].Name
+	})
+
 	for _, h := range data {
 		sort.SliceStable(h.Activities, func(i, j int) bool {
 			return h.Activities[i].CreatedAt.Before(h.Activities[j].CreatedAt)
