@@ -29,7 +29,7 @@ func fitter(min, max, buckets int) func(n int) int {
 	}
 	i := float64(buckets-min) / float64(max-min)
 	return func(n int) int {
-		return int(math.Floor(i * float64(n)))
+		return int(math.Ceil(i * float64(n)))
 	}
 }
 
