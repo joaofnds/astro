@@ -6,7 +6,7 @@ import (
 )
 
 func Today() time.Time {
-	return TruncateDay(time.Now())
+	return TruncateDay(time.Now().UTC())
 }
 
 func TruncateDay(t time.Time) time.Time {
