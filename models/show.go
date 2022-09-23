@@ -6,6 +6,7 @@ import (
 	"astroapp/habit"
 	"astroapp/histogram"
 	"astroapp/logger"
+	"astroapp/state"
 	"astroapp/util"
 	"fmt"
 	"strings"
@@ -26,27 +27,28 @@ var (
 )
 
 type keymap struct {
-	Help  key.Binding
-	Quit  key.Binding
-	Up    key.Binding
-	Down  key.Binding
-	Left  key.Binding
-	Right key.Binding
+	CheckIn key.Binding
+	Help    key.Binding
+	Quit    key.Binding
+	Up      key.Binding
+	Down    key.Binding
+	Left    key.Binding
+	Right   key.Binding
 }
 
 func (k keymap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Left, k.Down, k.Up, k.Right, k.Quit, k.Help}
+	return []key.Binding{k.Left, k.Down, k.Up, k.Right, k.CheckIn, k.Help, k.Quit}
 }
 
 func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down, k.Left, k.Right},
-		{k.Help, k.Quit},
+		{k.CheckIn, k.Help, k.Quit},
 	}
 }
 
 type Show struct {
-	habit    habit.Habit
+	habit    *habit.Habit
 	parent   tea.Model
 	selected int
 	t        time.Time
@@ -54,7 +56,7 @@ type Show struct {
 	keys     keymap
 }
 
-func NewShow(habit habit.Habit, parent tea.Model) Show {
+func NewShow(habit *habit.Habit, parent tea.Model) Show {
 	t, _ := date.TimeFrame()
 	selected := date.DiffInDays(t, date.Today())
 	return Show{
@@ -64,6 +66,10 @@ func NewShow(habit habit.Habit, parent tea.Model) Show {
 		t:        t,
 		help:     help.New(),
 		keys: keymap{
+			CheckIn: key.NewBinding(
+				key.WithKeys("c"),
+				key.WithHelp("c", "check in"),
+			),
 			Help: key.NewBinding(
 				key.WithKeys("?"),
 				key.WithHelp("?", "help"),
@@ -97,12 +103,11 @@ func (m Show) Init() tea.Cmd {
 }
 
 func (m Show) View() string {
-	defer logger.DubugTime("show", time.Now())
 	s := new(strings.Builder)
 	s.Grow(11_000)
 
 	s.WriteString(name.Render(m.habit.Name) + "\n")
-	s.WriteString(histogram.Histogram(m.t, m.habit, m.selected))
+	s.WriteString(histogram.Histogram(m.t, *m.habit, m.selected))
 	s.WriteString(activitiesOnDate(m.habit, m.t.AddDate(0, 0, m.selected)))
 	s.WriteString(m.help.View(m.keys))
 
@@ -115,6 +120,13 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.help.Width = msg.Width
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, m.keys.CheckIn):
+			habit, err := habit.Client.CheckIn(m.habit.Name)
+			if err != nil {
+				logger.Error.Printf("failed to add activity: %v", err)
+			} else {
+				state.SetHabit(habit)
+			}
 		case key.Matches(msg, m.keys.Up):
 			m.selected = util.Max(m.selected-1, 0)
 		case key.Matches(msg, m.keys.Down):
@@ -136,7 +148,7 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func activitiesOnDate(h habit.Habit, t time.Time) string {
+func activitiesOnDate(h *habit.Habit, t time.Time) string {
 	var count int
 	for _, a := range h.Activities {
 		if date.SameDay(a.CreatedAt, t) {

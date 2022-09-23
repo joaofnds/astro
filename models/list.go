@@ -3,34 +3,37 @@ package models
 import (
 	"astroapp/config"
 	"astroapp/habit"
+	"astroapp/state"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type item habit.Habit
+type item struct{ habit *habit.Habit }
 
-func (i item) Title() string { return i.Name }
+func (i item) Title() string { return i.habit.Name }
 func (i item) Description() string {
-	if len(i.Activities) == 0 {
+	if len(i.habit.Activities) == 0 {
 		return "no activities"
 	}
 
-	return "latest activity on " + i.ToHabit().LatestActivity().Format(config.TimeFormat)
+	return "latest activity on " + i.habit.LatestActivity().Format(config.TimeFormat)
 }
-func (i item) FilterValue() string  { return i.Name }
-func (i item) ToHabit() habit.Habit { return habit.Habit(i) }
+func (i item) FilterValue() string { return i.habit.Name }
+func toItems(habits []*habit.Habit) []list.Item {
+	items := make([]list.Item, len(habits))
+	for i, h := range habits {
+		items[i] = item{h}
+	}
+	return items
+}
 
 type List struct {
 	list list.Model
 }
 
-func NewList(habits []habit.Habit) List {
-	items := make([]list.Item, len(habits))
-	for i, h := range habits {
-		items[i] = item(h)
-	}
-	list := list.New(items, list.NewDefaultDelegate(), 0, 5)
+func NewList() List {
+	list := list.New(toItems(state.Habits()), list.NewDefaultDelegate(), 0, 5)
 	list.Title = "Habits"
 	return List{list}
 }
@@ -46,12 +49,12 @@ func (m List) View() string {
 func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		h, v := docStyle.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
+		m.list.SetSize(msg.Width, msg.Height)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
-			return NewShow(m.list.SelectedItem().(item).ToHabit(), m), nil
+			habit := state.At(m.list.Index())
+			return NewShow(habit, m), nil
 		}
 	}
 

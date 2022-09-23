@@ -6,16 +6,22 @@ import (
 	"sort"
 )
 
-type Client struct {
+var Client *client
+
+func init() {
+	Client = NewClient()
+}
+
+type client struct {
 	api *API
 }
 
-func NewClient() *Client {
-	return &Client{NewAPI()}
+func NewClient() *client {
+	return &client{NewAPI()}
 }
 
-func (d *Client) List() ([]Habit, error) {
-	data := []Habit{}
+func (d *client) List() ([]*Habit, error) {
+	data := []*Habit{}
 
 	res, err := d.api.List()
 	if err != nil {
@@ -42,26 +48,36 @@ func (d *Client) List() ([]Habit, error) {
 	return data, err
 }
 
-func (d *Client) Create(name string) error {
+func (d *client) Create(name string) error {
 	_, err := d.api.Create(name)
 	return err
 }
 
-func (d *Client) Get(name string) (Habit, error) {
+func (d *client) Get(name string) (*Habit, error) {
 	data := Habit{}
 
 	res, err := d.api.Get(name)
 	if err != nil {
-		return data, err
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	str, err := io.ReadAll(res.Body)
 	if err != nil {
-		return data, err
+		return nil, err
 	}
 
 	err = json.Unmarshal(str, &data)
 
-	return data, err
+	return &data, err
+}
+
+func (d *client) CheckIn(name string) (*Habit, error) {
+	_, err := d.api.AddActivity(name)
+	if err != nil {
+		return nil, err
+	}
+
+	h, err := d.Get(name)
+	return h, err
 }

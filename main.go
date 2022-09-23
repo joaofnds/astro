@@ -1,7 +1,6 @@
 package main
 
 import (
-	"astroapp/habit"
 	"astroapp/models"
 	"log"
 
@@ -9,13 +8,7 @@ import (
 )
 
 func main() {
-	client := habit.NewClient()
-	habits, err := client.List()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	p := tea.NewProgram(models.NewList(habits), tea.WithAltScreen())
+	p := tea.NewProgram(models.NewList(), tea.WithAltScreen())
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
 	}
