@@ -1,10 +1,12 @@
-package models
+package list
 
 import (
 	"astroapp/config"
 	"astroapp/habit"
+	"astroapp/models/show"
 	"astroapp/state"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -35,6 +37,14 @@ type List struct {
 func NewList() List {
 	list := list.New(toItems(state.Habits()), list.NewDefaultDelegate(), 0, 5)
 	list.Title = "Habits"
+	list.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			key.NewBinding(
+				key.WithKeys("a"),
+				key.WithHelp("a", "add todo"),
+			),
+		}
+	}
 	return List{list}
 }
 
@@ -54,7 +64,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "enter":
 			habit := state.At(m.list.Index())
-			return NewShow(habit, m), nil
+			return show.NewShow(habit, m), nil
 		}
 	}
 
