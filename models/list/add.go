@@ -56,5 +56,5 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	return "Habit name: " + m.input.View() + "(esc to quit)"
+	return "What is the name of your new habit?\n" + m.input.View() + "\n\n(esc to quit)"
 }
