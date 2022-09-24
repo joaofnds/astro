@@ -5,6 +5,7 @@ import (
 	"astroapp/habit"
 	"astroapp/models/show"
 	"astroapp/state"
+	"astroapp/util"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -65,6 +66,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				panic(err)
 			}
 			m.list.RemoveItem(m.list.Index())
+			m.list.Select(util.Min(m.list.Index(), len(state.Habits())-1))
 			return m, m.list.NewStatusMessage("Removed " + h.Name)
 
 		case key.Matches(msg, m.km.add):
