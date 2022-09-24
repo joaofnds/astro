@@ -1,6 +1,9 @@
 package habit
 
-import "time"
+import (
+	"sort"
+	"time"
+)
 
 type Activity struct {
 	Id        int       `json:"id"`
@@ -19,4 +22,10 @@ func (h Habit) LatestActivity() time.Time {
 	}
 
 	return h.Activities[len(h.Activities)-1].CreatedAt
+}
+
+func sortActivities(h *Habit) {
+	sort.SliceStable(h.Activities, func(i, j int) bool {
+		return h.Activities[i].CreatedAt.Before(h.Activities[j].CreatedAt)
+	})
 }

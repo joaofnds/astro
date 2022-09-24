@@ -21,35 +21,32 @@ func NewClient() *client {
 }
 
 func (d *client) List() ([]*Habit, error) {
-	data := []*Habit{}
-
 	res, err := d.api.List()
 	if err != nil {
-		return data, err
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	str, err := io.ReadAll(res.Body)
 	if err != nil {
-		return data, err
+		return nil, err
 	}
 
-	err = json.Unmarshal(str, &data)
+	habits := []*Habit{}
+	err = json.Unmarshal(str, &habits)
 	if err != nil {
-		return data, err
+		return nil, err
 	}
 
-	sort.SliceStable(data, func(i, j int) bool {
-		return data[i].Name < data[j].Name
+	sort.SliceStable(habits, func(i, j int) bool {
+		return habits[i].Name < habits[j].Name
 	})
 
-	for _, h := range data {
-		sort.SliceStable(h.Activities, func(i, j int) bool {
-			return h.Activities[i].CreatedAt.Before(h.Activities[j].CreatedAt)
-		})
+	for _, h := range habits {
+		sortActivities(h)
 	}
 
-	return data, err
+	return habits, err
 }
 
 func (d *client) Create(name string) error {
@@ -58,7 +55,7 @@ func (d *client) Create(name string) error {
 }
 
 func (d *client) Get(name string) (*Habit, error) {
-	data := Habit{}
+	h := Habit{}
 
 	res, err := d.api.Get(name)
 	if err != nil {
@@ -71,9 +68,9 @@ func (d *client) Get(name string) (*Habit, error) {
 		return nil, err
 	}
 
-	err = json.Unmarshal(str, &data)
-
-	return &data, err
+	err = json.Unmarshal(str, &h)
+	sortActivities(&h)
+	return &h, err
 }
 
 func (d *client) CheckIn(name string) (*Habit, error) {
