@@ -1,0 +1,60 @@
+package list
+
+import (
+	"astroapp/state"
+
+	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
+)
+
+type (
+	tickMsg struct{}
+	errMsg  error
+)
+
+type model struct {
+	parent List
+	input  textinput.Model
+	err    error
+}
+
+func newAddInput(parent List) model {
+	input := textinput.New()
+	input.Placeholder = "Read"
+	input.Focus()
+	input.CharLimit = 20
+	input.Width = 20
+
+	return model{parent: parent, input: input, err: nil}
+}
+
+func (m model) Init() tea.Cmd {
+	return textinput.Blink
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyEsc, tea.KeyCtrlC:
+			return m.parent, nil
+		case tea.KeyEnter:
+			h := state.Add(m.input.Value())
+			m.parent.list.SetItems(toItems(state.Habits()))
+			return m.parent, m.parent.list.NewStatusMessage("Added " + h.Name)
+		}
+
+	case errMsg:
+		m.err = msg
+		return m, nil
+	}
+
+	m.input, cmd = m.input.Update(msg)
+	return m, cmd
+}
+
+func (m model) View() string {
+	return "Habit name: " + m.input.View() + "(esc to quit)"
+}

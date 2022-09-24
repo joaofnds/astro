@@ -68,10 +68,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.list.NewStatusMessage("Removed " + h.Name)
 
 		case key.Matches(msg, m.km.add):
-			name := "12341234"
-			h := state.Add(name)
-			m.list.SetItems(toItems(state.Habits()))
-			return m, m.list.NewStatusMessage("Added " + h.Name)
+			return newAddInput(m), nil
 
 		case key.Matches(msg, m.km.view):
 			habit := state.At(m.list.Index())
