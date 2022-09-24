@@ -50,11 +50,25 @@ func (d *client) List() ([]*Habit, error) {
 }
 
 func (d *client) Create(name string) (*Habit, error) {
-	_, err := d.api.Create(name)
+	var h Habit
+	res, err := d.api.Create(name)
 	if err != nil {
-		return nil, err
+		return &h, err
 	}
-	return d.Get(name)
+	defer res.Body.Close()
+
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return &h, err
+	}
+
+	err = json.Unmarshal(b, &h)
+	if err != nil {
+		return &h, err
+	}
+
+	sortActivities(&h)
+	return &h, nil
 }
 
 func (d *client) Delete(name string) error {
@@ -71,12 +85,12 @@ func (d *client) Get(name string) (*Habit, error) {
 	}
 	defer res.Body.Close()
 
-	str, err := io.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal(str, &h)
+	err = json.Unmarshal(b, &h)
 	sortActivities(&h)
 	return &h, err
 }
