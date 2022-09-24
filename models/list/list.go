@@ -3,6 +3,7 @@ package list
 import (
 	"astroapp/config"
 	"astroapp/habit"
+	"astroapp/logger"
 	"astroapp/models/show"
 	"astroapp/state"
 
@@ -32,20 +33,15 @@ func toItems(habits []*habit.Habit) []list.Item {
 
 type List struct {
 	list list.Model
+	km   keymap
 }
 
 func NewList() List {
+	km := NewKeymap()
 	list := list.New(toItems(state.Habits()), list.NewDefaultDelegate(), 0, 5)
 	list.Title = "Habits"
-	list.AdditionalShortHelpKeys = func() []key.Binding {
-		return []key.Binding{
-			key.NewBinding(
-				key.WithKeys("a"),
-				key.WithHelp("a", "add todo"),
-			),
-		}
-	}
-	return List{list}
+	list.AdditionalShortHelpKeys = km.ToSlice
+	return List{list, km}
 }
 
 func (m List) Init() tea.Cmd {
@@ -53,16 +49,33 @@ func (m List) Init() tea.Cmd {
 }
 
 func (m List) View() string {
+	logger.Debug.Printf("state len: %d\n", len(state.Habits()))
 	return m.list.View()
 }
 
 func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+
 	case tea.WindowSizeMsg:
 		m.list.SetSize(msg.Width, msg.Height)
+
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "enter":
+		switch {
+		case key.Matches(msg, m.km.delete):
+			h := state.At(m.list.Index())
+			if err := state.Delete(h.Name); err != nil {
+				panic(err)
+			}
+			m.list.RemoveItem(m.list.Index())
+			return m, m.list.NewStatusMessage("Removed " + h.Name)
+
+		case key.Matches(msg, m.km.add):
+			name := "12341234"
+			h := state.Add(name)
+			m.list.SetItems(toItems(state.Habits()))
+			return m, m.list.NewStatusMessage("Added " + h.Name)
+
+		case key.Matches(msg, m.km.view):
 			habit := state.At(m.list.Index())
 			return show.NewShow(habit, m), nil
 		}

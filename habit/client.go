@@ -49,8 +49,16 @@ func (d *client) List() ([]*Habit, error) {
 	return habits, err
 }
 
-func (d *client) Create(name string) error {
+func (d *client) Create(name string) (*Habit, error) {
 	_, err := d.api.Create(name)
+	if err != nil {
+		return nil, err
+	}
+	return d.Get(name)
+}
+
+func (d *client) Delete(name string) error {
+	_, err := d.api.Delete(name)
 	return err
 }
 
