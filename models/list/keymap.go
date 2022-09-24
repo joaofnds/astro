@@ -16,7 +16,7 @@ func NewKeymap() keymap {
 		),
 		delete: key.NewBinding(
 			key.WithKeys("d"),
-			key.WithHelp("d", "add"),
+			key.WithHelp("d", "delete"),
 		),
 		view: key.NewBinding(
 			key.WithKeys("enter"),
