@@ -3,7 +3,6 @@ package list
 import (
 	"astroapp/config"
 	"astroapp/habit"
-	"astroapp/logger"
 	"astroapp/models/show"
 	"astroapp/state"
 
@@ -49,7 +48,6 @@ func (m List) Init() tea.Cmd {
 }
 
 func (m List) View() string {
-	logger.Debug.Printf("state len: %d\n", len(state.Habits()))
 	return m.list.View()
 }
 
