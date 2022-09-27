@@ -1,6 +1,7 @@
 package habit
 
 import (
+	"astroapp/config"
 	"encoding/json"
 	"io"
 	"sort"
@@ -9,15 +10,15 @@ import (
 var Client *client
 
 func init() {
-	Client = NewClient()
+	Client = NewClient(string(config.Token))
 }
 
 type client struct {
 	api *API
 }
 
-func NewClient() *client {
-	return &client{NewAPI()}
+func NewClient(token string) *client {
+	return &client{NewAPI(token)}
 }
 
 func (d *client) List() ([]*Habit, error) {

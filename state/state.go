@@ -15,7 +15,7 @@ func GetAll() {
 	var err error
 	habits, err = habit.Client.List()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("could not list habits: %s", err)
 	}
 }
 
@@ -56,7 +56,7 @@ func SetHabit(h *habit.Habit) {
 func Add(name string) *habit.Habit {
 	_, err := habit.Client.Create(name)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("could not create habit: %s", err)
 	}
 	GetAll()
 	return Get(name)
