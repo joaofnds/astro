@@ -14,15 +14,16 @@ func init() {
 }
 
 type client struct {
-	api *API
+	api   *API
+	token string
 }
 
 func NewClient(token string) *client {
-	return &client{NewAPI(token)}
+	return &client{NewAPI(), token}
 }
 
 func (d *client) List() ([]*Habit, error) {
-	res, err := d.api.List()
+	res, err := d.api.List(d.token)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +53,7 @@ func (d *client) List() ([]*Habit, error) {
 
 func (d *client) Create(name string) (*Habit, error) {
 	var h Habit
-	res, err := d.api.Create(name)
+	res, err := d.api.Create(d.token, name)
 	if err != nil {
 		return &h, err
 	}
@@ -73,14 +74,14 @@ func (d *client) Create(name string) (*Habit, error) {
 }
 
 func (d *client) Delete(name string) error {
-	_, err := d.api.Delete(name)
+	_, err := d.api.Delete(d.token, name)
 	return err
 }
 
-func (d *client) Get(name string) (*Habit, error) {
+func (d *client) Get(id string) (*Habit, error) {
 	h := Habit{}
 
-	res, err := d.api.Get(name)
+	res, err := d.api.Get(d.token, id)
 	if err != nil {
 		return nil, err
 	}
@@ -96,12 +97,12 @@ func (d *client) Get(name string) (*Habit, error) {
 	return &h, err
 }
 
-func (d *client) CheckIn(name string) (*Habit, error) {
-	_, err := d.api.AddActivity(name)
+func (d *client) CheckIn(id string) (*Habit, error) {
+	_, err := d.api.AddActivity(d.token, id)
 	if err != nil {
 		return nil, err
 	}
 
-	h, err := d.Get(name)
+	h, err := d.Get(id)
 	return h, err
 }

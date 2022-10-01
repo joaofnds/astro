@@ -71,7 +71,7 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.CheckIn):
-			habit, err := habit.Client.CheckIn(m.habit.Name)
+			habit, err := habit.Client.CheckIn(m.habit.ID)
 			if err != nil {
 				logger.Error.Printf("failed to add activity: %v", err)
 			} else {

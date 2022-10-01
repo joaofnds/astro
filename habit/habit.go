@@ -6,13 +6,14 @@ import (
 )
 
 type Activity struct {
-	Id        int       `json:"id"`
+	Id        string    `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 type Habit struct {
-	Id         int        `json:"id"`
+	ID         string     `json:"id"`
 	Name       string     `json:"name"`
+	UserID     string     `json:"user_id"`
 	Activities []Activity `json:"activities"`
 }
 

@@ -62,7 +62,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.km.delete):
 			h := state.At(m.list.Index())
-			if err := state.Delete(h.Name); err != nil {
+			if err := state.Delete(h.ID); err != nil {
 				panic(err)
 			}
 			m.list.RemoveItem(m.list.Index())

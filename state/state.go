@@ -27,18 +27,18 @@ func At(i int) *habit.Habit {
 	return habits[i]
 }
 
-func IndexOf(name string) int {
+func IndexOf(id string) int {
 	for i, h := range habits {
-		if h.Name == name {
+		if h.ID == id {
 			return i
 		}
 	}
 	return -1
 }
 
-func Get(name string) *habit.Habit {
+func Get(id string) *habit.Habit {
 	for _, h := range habits {
-		if h.Name == name {
+		if h.ID == id {
 			return h
 		}
 	}
@@ -47,28 +47,28 @@ func Get(name string) *habit.Habit {
 
 func SetHabit(h *habit.Habit) {
 	for i := range habits {
-		if habits[i].Name == h.Name {
+		if habits[i].ID == h.ID {
 			*habits[i] = *h
 		}
 	}
 }
 
 func Add(name string) *habit.Habit {
-	_, err := habit.Client.Create(name)
+	h, err := habit.Client.Create(name)
 	if err != nil {
 		log.Fatalf("could not create habit: %s", err)
 	}
 	GetAll()
-	return Get(name)
+	return Get(h.ID)
 }
 
-func Delete(name string) error {
-	i := IndexOf(name)
+func Delete(id string) error {
+	i := IndexOf(id)
 	if i == -1 {
 		return nil
 	}
 
-	if err := habit.Client.Delete(name); err != nil {
+	if err := habit.Client.Delete(id); err != nil {
 		return err
 	}
 
