@@ -24,7 +24,7 @@ func init() {
 		log.Fatalf("could not get user home dir")
 	}
 
-	tokenPath := path.Join(home, ".config", "gastro", "token")
+	tokenPath := path.Join(home, ".config", "astro", "token")
 	f, err := os.Open(tokenPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {

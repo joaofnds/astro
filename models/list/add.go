@@ -1,7 +1,7 @@
 package list
 
 import (
-	"astroapp/state"
+	"astro/state"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"

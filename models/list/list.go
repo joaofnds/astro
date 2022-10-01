@@ -1,11 +1,11 @@
 package list
 
 import (
-	"astroapp/config"
-	"astroapp/habit"
-	"astroapp/models/show"
-	"astroapp/state"
-	"astroapp/util"
+	"astro/config"
+	"astro/habit"
+	"astro/models/show"
+	"astro/state"
+	"astro/util"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"

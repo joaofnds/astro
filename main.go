@@ -1,7 +1,7 @@
 package main
 
 import (
-	"astroapp/models/list"
+	"astro/models/list"
 	"log"
 
 	tea "github.com/charmbracelet/bubbletea"

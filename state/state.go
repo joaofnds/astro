@@ -1,7 +1,7 @@
 package state
 
 import (
-	"astroapp/habit"
+	"astro/habit"
 	"log"
 )
 

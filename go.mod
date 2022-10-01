@@ -1,4 +1,4 @@
-module astroapp
+module astro
 
 go 1.19
 

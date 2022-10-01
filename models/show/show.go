@@ -1,13 +1,13 @@
 package show
 
 import (
-	"astroapp/config"
-	"astroapp/date"
-	"astroapp/habit"
-	"astroapp/histogram"
-	"astroapp/logger"
-	"astroapp/state"
-	"astroapp/util"
+	"astro/config"
+	"astro/date"
+	"astro/habit"
+	"astro/histogram"
+	"astro/logger"
+	"astro/state"
+	"astro/util"
 	"fmt"
 	"strings"
 	"time"

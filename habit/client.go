@@ -1,7 +1,7 @@
 package habit
 
 import (
-	"astroapp/config"
+	"astro/config"
 	"encoding/json"
 	"io"
 	"sort"

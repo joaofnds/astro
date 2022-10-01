@@ -1,9 +1,9 @@
 package histogram
 
 import (
-	"astroapp/config"
-	"astroapp/date"
-	"astroapp/habit"
+	"astro/config"
+	"astro/date"
+	"astro/habit"
 	"math"
 	"strings"
 	"time"

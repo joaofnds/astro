@@ -5,8 +5,8 @@ Keep you habits, like an astronaut! 🧑‍🚀
 # Get the token
 
 ```sh
-mkdir ~/.config/gastro
-curl -X POST https://gastro.fly.dev/token > ~/.config/gastro/token
+mkdir ~/.config/astro
+curl -X POST https://gastro.fly.dev/token > ~/.config/astro/token
 ```
 
 # Start the app

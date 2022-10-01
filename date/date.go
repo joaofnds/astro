@@ -1,7 +1,7 @@
 package date
 
 import (
-	"astroapp/config"
+	"astro/config"
 	"time"
 )
 
