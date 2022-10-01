@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -25,7 +26,7 @@ func (a API) List(token string) (*http.Response, error) {
 
 func (a API) Create(token, name string) (*http.Response, error) {
 	return post(
-		a.baseURL+"/habits?name="+name,
+		a.baseURL+"/habits?name="+url.QueryEscape(name),
 		Headers{"Content-Type": "application/json", "Authorization": token},
 		&bytes.Buffer{},
 	)
