@@ -59,6 +59,9 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetSize(msg.Width, msg.Height)
 
 	case tea.KeyMsg:
+		if m.list.SettingFilter() {
+			break
+		}
 		switch {
 		case key.Matches(msg, m.km.delete):
 			h := state.At(m.list.Index())
