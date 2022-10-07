@@ -15,7 +15,7 @@ type API struct {
 
 func NewAPI() *API {
 	return &API{
-		baseURL: "https://gastro.fly.dev",
+		baseURL: "https://astro.joaofnds.com",
 	}
 }
 
