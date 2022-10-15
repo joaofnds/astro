@@ -12,7 +12,7 @@ brew install joaofnds/tap/astro
 
 # get a token
 mkdir ~/.config/astro
-curl -X POST https://gastro.fly.dev/token > ~/.config/astro/token
+curl -X POST https://astro.joaofnds.com/token > ~/.config/astro/token
 
 # start the app
 astro
