@@ -15,5 +15,5 @@ mkdir ~/.config/astro
 curl -X POST https://gastro.fly.dev/token > ~/.config/astro/token
 
 # start the app
-./astro
+astro
 ```
