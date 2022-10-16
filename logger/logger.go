@@ -3,6 +3,7 @@ package logger
 import (
 	"log"
 	"os"
+	"time"
 )
 
 var (
@@ -19,4 +20,9 @@ func init() {
 
 	Debug = log.New(f, "[DEBUG] ", flags)
 	Error = log.New(f, "[ERROR] ", flags)
+}
+
+func DebugTime(label string, t1 time.Time) {
+	elapsed := time.Since(t1)
+	Debug.Printf("%s took: %s", label, elapsed)
 }
