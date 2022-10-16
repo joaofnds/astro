@@ -22,7 +22,7 @@ func newAddInput(parent List) model {
 	input := textinput.New()
 	input.Placeholder = "Read"
 	input.Focus()
-	input.CharLimit = 20
+	input.CharLimit = 50
 	input.Width = 20
 
 	return model{parent: parent, input: input, err: nil}

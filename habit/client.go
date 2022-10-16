@@ -10,7 +10,7 @@ import (
 var Client *client
 
 func init() {
-	Client = NewClient(string(config.Token))
+	Client = NewClient(config.Token)
 }
 
 type client struct {
@@ -34,7 +34,7 @@ func (d *client) List() ([]*Habit, error) {
 		return nil, err
 	}
 
-	habits := []*Habit{}
+	var habits []*Habit
 	err = json.Unmarshal(str, &habits)
 	if err != nil {
 		return nil, err
