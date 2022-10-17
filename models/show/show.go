@@ -47,18 +47,21 @@ func NewShow(habit *habit.Habit, parent tea.Model) Show {
 		keys:     NewKeymap(),
 	}
 }
+func (m Show) selectedDate() time.Time {
+	return m.t.AddDate(0, 0, m.selected)
+}
 
 func (m Show) Init() tea.Cmd {
 	return nil
 }
 
 func (m Show) View() string {
-	s := new(strings.Builder)
+	var s strings.Builder
 	s.Grow(11_000)
 
 	s.WriteString(name.Render(m.habit.Name) + "\n")
 	s.WriteString(histogram.Histogram(m.t, *m.habit, m.selected))
-	s.WriteString(activitiesOnDate(m.habit, m.t.AddDate(0, 0, m.selected)))
+	s.WriteString(activitiesOnDate(m.habit, m.selectedDate()))
 	s.WriteString(m.help.View(m.keys))
 
 	return style.Render(s.String())
@@ -71,12 +74,23 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.CheckIn):
-			habit, err := habit.Client.CheckIn(m.habit.ID)
+			hab, err := habit.Client.CheckIn(m.habit.ID)
 			if err != nil {
 				logger.Error.Printf("failed to add activity: %v", err)
 			} else {
-				state.SetHabit(habit)
+				state.SetHabit(hab)
 			}
+		case key.Matches(msg, m.keys.Delete):
+			activity, err := m.habit.LatestActivityOnDate(m.selectedDate())
+			if err != nil {
+				break // no activity on date
+			}
+			if err := habit.Client.DeleteActivity(*m.habit, activity); err != nil {
+				logger.Debug.Printf("failed to delete activity: %v", err)
+				break
+			}
+
+			state.DeleteActivity(m.habit, activity)
 		case key.Matches(msg, m.keys.Up):
 			m.selected = util.Max(m.selected-1, 0)
 		case key.Matches(msg, m.keys.Down):

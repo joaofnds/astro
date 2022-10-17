@@ -8,7 +8,6 @@ import (
 )
 
 type (
-	tickMsg struct{}
 	errMsg  error
 )
 

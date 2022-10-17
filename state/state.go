@@ -53,6 +53,14 @@ func SetHabit(h *habit.Habit) {
 	}
 }
 
+func DeleteActivity(h *habit.Habit, activity habit.Activity) {
+	for i, a := range h.Activities {
+		if a.Id == activity.Id {
+			h.Activities = append(h.Activities[:i], h.Activities[i+1:]...)
+		}
+	}
+}
+
 func Add(name string) *habit.Habit {
 	h, err := habit.Client.Create(name)
 	if err != nil {

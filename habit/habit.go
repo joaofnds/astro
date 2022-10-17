@@ -1,6 +1,8 @@
 package habit
 
 import (
+	"astro/date"
+	"errors"
 	"sort"
 	"time"
 )
@@ -23,6 +25,16 @@ func (h Habit) LatestActivity() time.Time {
 	}
 
 	return h.Activities[len(h.Activities)-1].CreatedAt
+}
+
+func (h Habit) LatestActivityOnDate(time time.Time) (Activity, error) {
+	for i := len(h.Activities) - 1; i >= 0; i-- {
+		if date.SameDay(time, h.Activities[i].CreatedAt) {
+			return h.Activities[i], nil
+		}
+	}
+
+	return Activity{}, errors.New("no activity on date")
 }
 
 func sortActivities(h *Habit) {

@@ -73,8 +73,13 @@ func (d *client) Create(name string) (*Habit, error) {
 	return &h, nil
 }
 
-func (d *client) Delete(name string) error {
-	_, err := d.api.Delete(d.token, name)
+func (d *client) Delete(id string) error {
+	_, err := d.api.Delete(d.token, id)
+	return err
+}
+
+func (d *client) DeleteActivity(habit Habit, activity Activity) error {
+	_, err := d.api.DeleteActivity(d.token, habit.ID, activity.Id)
 	return err
 }
 
