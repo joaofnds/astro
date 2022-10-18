@@ -9,11 +9,16 @@ backend at [joaofnds/gastro](https://github.com/joaofnds/gastro)
 ```sh
 # install
 brew install joaofnds/tap/astro
-
-# get a token
-mkdir ~/.config/astro
-curl -X POST https://astro.joaofnds.com/token > ~/.config/astro/token
-
 # start the app
 astro
+```
+
+## Token
+The token identifies you as a user, and your habits are tied to your token. If you wish to have your habits shared across
+multiple machines, just copy `~/.config/astro/token` to each machine.
+
+Astro will create a token for you on launch, but if you wish do it manually, here's how:
+
+```sh
+curl -X POST https://astro.joaofnds.com/token > ~/.config/astro/token
 ```
