@@ -59,6 +59,8 @@ aurs:
 
     private_key: "{{ .Env.AUR_KEY }}"
 
+    skip_upload: "false"
+
     git_url: "ssh://aur@aur.archlinux.org/astro-bin.git"
 
     conflicts: ["astro"]
