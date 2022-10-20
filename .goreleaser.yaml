@@ -1,6 +1,7 @@
 before:
   hooks:
     - go mod tidy
+
 builds:
   - env:
       - CGO_ENABLED=0
@@ -8,6 +9,7 @@ builds:
       - linux
       - windows
       - darwin
+
 archives:
   - replacements:
       darwin: Darwin
@@ -15,10 +17,13 @@ archives:
       windows: Windows
       386: i386
       amd64: x86_64
+
 checksum:
   name_template: "checksums.txt"
+
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
+
 changelog:
   sort: asc
   filters:
@@ -40,3 +45,30 @@ brews:
     homepage: "https://github.com/joaofnds/astro"
     description: "a habit tracker for your terminal with a GitHub style activity graph"
     license: "MIT"
+
+aurs:
+  - name: astro-bin
+
+    homepage: "https://astro.joaofnds.com/"
+    description: "A habit tracker for your terminal with a GitHub style activity graph"
+
+    maintainers: ["João Fernandes <joaofnds@joaofnds.com>"]
+    contributors: ["João Fernandes <joaofnds@joaofnds.com>"]
+
+    license: "MIT"
+
+    private_key: "{{ .Env.AUR_KEY }}"
+
+    git_url: "ssh://aur@aur.archlinux.org/astro-bin.git"
+
+    conflicts: ["astro"]
+
+    package: |-
+      install -Dm755 "./astro" "${pkgdir}/usr/bin/astro"
+
+    commit_author:
+      name: joaofnds
+      email: joaofnds@joaofnds.com
+
+    git_ssh_command: "ssh -i {{ .Env.AUR_KEY }} -o SomeOption=yes"
+    url_template: "https://github.com/joaofnds/astro/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
