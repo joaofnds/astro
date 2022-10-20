@@ -4,6 +4,7 @@ import (
 	"astro/config"
 	"astro/habit"
 	"astro/histogram"
+	"astro/logger"
 	"astro/models/show"
 	"astro/state"
 	"astro/util"
@@ -68,22 +69,30 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.list.SettingFilter() {
 			break
 		}
+
+		selected := state.At(m.list.Index())
+
 		switch {
+		case key.Matches(msg, m.km.checkIn):
+			hab, err := habit.Client.CheckIn(selected.ID)
+			if err != nil {
+				logger.Error.Printf("failed to add activity: %v", err)
+			} else {
+				state.SetHabit(hab)
+			}
 		case key.Matches(msg, m.km.delete):
-			h := state.At(m.list.Index())
-			if err := state.Delete(h.ID); err != nil {
+			if err := state.Delete(selected.ID); err != nil {
 				panic(err)
 			}
 			m.list.RemoveItem(m.list.Index())
 			m.list.Select(util.Min(m.list.Index(), len(state.Habits())-1))
-			return m, m.list.NewStatusMessage("Removed " + h.Name)
+			return m, m.list.NewStatusMessage("Removed " + selected.Name)
 
 		case key.Matches(msg, m.km.add):
 			return newAddInput(m), nil
 
 		case key.Matches(msg, m.km.view):
-			habit := state.At(m.list.Index())
-			return show.NewShow(habit, m), nil
+			return show.NewShow(selected, m), nil
 		}
 	}
 

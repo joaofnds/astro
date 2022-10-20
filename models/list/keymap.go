@@ -3,13 +3,18 @@ package list
 import "github.com/charmbracelet/bubbles/key"
 
 type keymap struct {
-	add    key.Binding
-	delete key.Binding
-	view   key.Binding
+	checkIn key.Binding
+	add     key.Binding
+	delete  key.Binding
+	view    key.Binding
 }
 
 func NewKeymap() keymap {
 	return keymap{
+		checkIn: key.NewBinding(
+			key.WithKeys("c"),
+			key.WithHelp("c", "check in"),
+		),
 		add: key.NewBinding(
 			key.WithKeys("a"),
 			key.WithHelp("a", "add"),
