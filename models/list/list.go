@@ -3,6 +3,7 @@ package list
 import (
 	"astro/config"
 	"astro/habit"
+	"astro/histogram"
 	"astro/models/show"
 	"astro/state"
 	"astro/util"
@@ -16,12 +17,17 @@ type item struct{ habit *habit.Habit }
 
 func (i item) Title() string { return i.habit.Name }
 func (i item) Description() string {
+	return histogram.ShortLineHistogram(*i.habit, config.ShortHistSize) + " " + i.lastActivity()
+}
+
+func (i item) lastActivity() string {
 	if len(i.habit.Activities) == 0 {
 		return "no activities"
 	}
 
-	return "latest activity on " + i.habit.LatestActivity().Format(config.TimeFormat)
+	return "last activity at " + i.habit.LatestActivity().Format(config.TimeFormat)
 }
+
 func (i item) FilterValue() string { return i.habit.Name }
 func toItems(habits []*habit.Habit) []list.Item {
 	items := make([]list.Item, len(habits))

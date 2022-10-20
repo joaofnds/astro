@@ -33,6 +33,41 @@ func fitter(min, max, buckets int) func(n int) int {
 	}
 }
 
+func ShortLineHistogram(h habit.Habit, days int) string {
+	hist := make([]int, days)
+	start := date.Today().AddDate(0, 0, 1-days)
+
+	min, max := 0, 0
+	for i := len(h.Activities) - 1; i >= 0; i-- {
+		a := h.Activities[i]
+
+		diffInDays := date.DiffInDays(start, a.CreatedAt)
+		if diffInDays > days {
+			break
+		}
+
+		if diffInDays >= 0 {
+			hist[diffInDays]++
+
+			if hist[diffInDays] > max {
+				max = hist[diffInDays]
+			}
+
+			if hist[diffInDays] < min {
+				min = hist[diffInDays]
+			}
+		}
+	}
+
+	fit := fitter(min, max, len(colors)-1)
+
+	var s strings.Builder
+	for _, day := range hist {
+		s.WriteString(colors[fit(day)].Render(config.Graphic))
+	}
+	return s.String()
+}
+
 func Histogram(t time.Time, h habit.Habit, selected int) string {
 	hist := make([]int, config.TimeFrameInDays)
 	min, max := 0, 0
