@@ -42,7 +42,7 @@ func ShortLineHistogram(h habit.Habit, days int) string {
 		a := h.Activities[i]
 
 		diffInDays := date.DiffInDays(start, a.CreatedAt)
-		if diffInDays > days {
+		if diffInDays >= days {
 			break
 		}
 
