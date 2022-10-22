@@ -13,7 +13,10 @@ brew install joaofnds/tap/astro
 astro
 ```
 
+Astro is also on aur as [astro-bin](https://aur.archlinux.org/packages/astro-bin)
+
 ## Token
+
 The token identifies you as a user, and your habits are tied to your token. If you wish to have your habits shared across
 multiple machines, just copy `~/.config/astro/token` to each machine.
 
