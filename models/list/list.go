@@ -92,8 +92,10 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return newAddInput(m), nil
 
 		case key.Matches(msg, m.km.view):
-			selected := state.At(m.list.Index())
-			return show.NewShow(selected, m), nil
+			if len(m.list.VisibleItems()) > 0 {
+				selected := state.At(m.list.Index())
+				return show.NewShow(selected, m), nil
+			}
 		}
 	}
 
