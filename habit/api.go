@@ -2,9 +2,11 @@ package habit
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 type Headers = map[string]string
@@ -15,7 +17,7 @@ type API struct {
 
 func NewAPI() *API {
 	return &API{
-		baseURL: "https://astro.joaofnds.com",
+		baseURL: "http://localhost:3000",
 	}
 }
 
@@ -55,12 +57,12 @@ func (a API) Delete(token, id string) (*http.Response, error) {
 	)
 }
 
-func (a API) AddActivity(token, id string) (*http.Response, error) {
+func (a API) AddActivity(token, id, desc string) (*http.Response, error) {
 	return req(
 		http.MethodPost,
 		a.baseURL+"/habits/"+id,
-		map[string]string{"Authorization": token},
-		new(bytes.Buffer),
+		map[string]string{"Authorization": token, "Content-Type": "application/json"},
+		strings.NewReader(fmt.Sprintf(`{"description":%q}`, desc)),
 	)
 }
 

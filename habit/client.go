@@ -101,8 +101,8 @@ func (d *client) Get(id string) (*Habit, error) {
 	return &h, err
 }
 
-func (d *client) CheckIn(id string) (*Habit, error) {
-	_, err := d.api.AddActivity(d.token, id)
+func (d *client) CheckIn(id, desc string) (*Habit, error) {
+	_, err := d.api.AddActivity(d.token, id, desc)
 	if err != nil {
 		return nil, err
 	}

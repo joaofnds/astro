@@ -1,7 +1,10 @@
 package config
 
+import "time"
+
 const (
-	TimeFormat      = "Jan 02, 2006"
+	DateFormat      = "Jan 02, 2006"
+	TimeFormat      = time.Kitchen
 	TimeFrameInDays = 52 * 7
 	ShortHistSize   = 14
 

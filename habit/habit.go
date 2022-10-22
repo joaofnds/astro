@@ -9,6 +9,7 @@ import (
 
 type Activity struct {
 	Id        string    `json:"id"`
+	Desc      string    `json:"description"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

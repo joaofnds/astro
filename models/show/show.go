@@ -6,6 +6,7 @@ import (
 	"astro/habit"
 	"astro/histogram"
 	"astro/logger"
+	"astro/models/desc"
 	"astro/state"
 	"astro/util"
 	"fmt"
@@ -62,6 +63,7 @@ func (m Show) View() string {
 	s.WriteString(name.Render(m.habit.Name) + "\n")
 	s.WriteString(histogram.Histogram(m.t, *m.habit, m.selected))
 	s.WriteString(activitiesOnDate(m.habit, m.selectedDate()))
+	s.WriteString(timeline(m.habit, m.selectedDate()))
 	s.WriteString(m.help.View(m.keys))
 
 	return style.Render(s.String())
@@ -74,12 +76,14 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.CheckIn):
-			hab, err := habit.Client.CheckIn(m.habit.ID)
+			hab, err := habit.Client.CheckIn(m.habit.ID, "")
 			if err != nil {
 				logger.Error.Printf("failed to add activity: %v", err)
 			} else {
 				state.SetHabit(hab)
 			}
+		case key.Matches(msg, m.keys.VCheckIn):
+			return desc.NewDesc(m.habit, m), nil
 		case key.Matches(msg, m.keys.Delete):
 			activity, err := m.habit.LatestActivityOnDate(m.selectedDate())
 			if err != nil {
@@ -123,5 +127,23 @@ func activitiesOnDate(h *habit.Habit, t time.Time) string {
 	if count == 1 {
 		w = "activity"
 	}
-	return fmt.Sprintf("%d %s on %s\n", count, w, t.Format(config.TimeFormat))
+	return fmt.Sprintf("%d %s on %s\n", count, w, t.Format(config.DateFormat))
+}
+
+func timeline(h *habit.Habit, t time.Time) string {
+	var s strings.Builder
+
+	s.WriteString("\n")
+
+	for _, a := range h.Activities {
+		if !date.SameDay(a.CreatedAt, t) {
+			continue
+		}
+
+		if a.Desc != "" {
+			s.WriteString(a.CreatedAt.Local().Format(config.TimeFormat) + "\n\t" + a.Desc + "\n")
+		}
+	}
+
+	return s.String()
 }

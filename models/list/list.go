@@ -73,7 +73,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.km.checkIn):
 			selected := state.At(m.list.Index())
-			hab, err := habit.Client.CheckIn(selected.ID)
+			hab, err := habit.Client.CheckIn(selected.ID, "")
 			if err != nil {
 				logger.Error.Printf("failed to add activity: %v", err)
 			} else {
