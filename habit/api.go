@@ -17,7 +17,7 @@ type API struct {
 
 func NewAPI() *API {
 	return &API{
-		baseURL: "http://localhost:3000",
+		baseURL: "https://astro.joaofnds.com",
 	}
 }
 
