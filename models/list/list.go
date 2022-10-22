@@ -70,10 +70,9 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 
-		selected := state.At(m.list.Index())
-
 		switch {
 		case key.Matches(msg, m.km.checkIn):
+			selected := state.At(m.list.Index())
 			hab, err := habit.Client.CheckIn(selected.ID)
 			if err != nil {
 				logger.Error.Printf("failed to add activity: %v", err)
@@ -81,6 +80,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				state.SetHabit(hab)
 			}
 		case key.Matches(msg, m.km.delete):
+			selected := state.At(m.list.Index())
 			if err := state.Delete(selected.ID); err != nil {
 				panic(err)
 			}
@@ -92,6 +92,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return newAddInput(m), nil
 
 		case key.Matches(msg, m.km.view):
+			selected := state.At(m.list.Index())
 			return show.NewShow(selected, m), nil
 		}
 	}
