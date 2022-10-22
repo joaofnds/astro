@@ -41,27 +41,27 @@ func ShortLineHistogram(h habit.Habit, days int) string {
 	for i := len(h.Activities) - 1; i >= 0; i-- {
 		a := h.Activities[i]
 
-		diffInDays := date.DiffInDays(start, a.CreatedAt)
-		if diffInDays >= days {
+		if start.After(a.CreatedAt) {
 			break
 		}
 
-		if diffInDays >= 0 {
-			hist[diffInDays]++
+		diffInDays := date.DiffInDays(start, a.CreatedAt)
 
-			if hist[diffInDays] > max {
-				max = hist[diffInDays]
-			}
+		hist[diffInDays]++
 
-			if hist[diffInDays] < min {
-				min = hist[diffInDays]
-			}
+		if hist[diffInDays] > max {
+			max = hist[diffInDays]
+		}
+
+		if hist[diffInDays] < min {
+			min = hist[diffInDays]
 		}
 	}
 
 	fit := fitter(min, max, len(colors)-1)
 
 	var s strings.Builder
+	s.Grow(len(hist) * 30)
 	for _, day := range hist {
 		s.WriteString(colors[fit(day)].Render(config.Graphic))
 	}
