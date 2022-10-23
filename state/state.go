@@ -7,10 +7,6 @@ import (
 
 var habits []*habit.Habit
 
-func init() {
-	GetAll()
-}
-
 func GetAll() {
 	var err error
 	habits, err = habit.Client.List()

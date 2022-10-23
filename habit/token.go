@@ -13,7 +13,7 @@ var (
 	tokenPath string
 )
 
-func init() {
+func Init() {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatalf("could not get user home dir: %v\n", err)

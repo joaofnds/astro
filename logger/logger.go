@@ -12,7 +12,7 @@ var (
 	flags = log.Ldate | log.Ltime | log.Lshortfile | log.Lmsgprefix
 )
 
-func init() {
+func Init() {
 	f, err := os.OpenFile("log.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		log.Fatalf("failed to open log file: %v", err)
