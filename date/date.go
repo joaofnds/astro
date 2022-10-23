@@ -6,7 +6,7 @@ import (
 )
 
 func Today() time.Time {
-	return TruncateDay(time.Now().UTC())
+	return TruncateDay(time.Now().Local())
 }
 
 func TruncateDay(t time.Time) time.Time {
@@ -28,6 +28,7 @@ func EndOfWeek(t time.Time) time.Time {
 }
 
 func SameDay(t1, t2 time.Time) bool {
+	t1, t2 = t1.Local(), t2.Local()
 	return t1.Day() == t2.Day() &&
 		t1.Month() == t2.Month() &&
 		t1.Year() == t2.Year()
