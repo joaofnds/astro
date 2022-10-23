@@ -7,12 +7,10 @@ import (
 
 var habits []*habit.Habit
 
-func GetAll() {
+func GetAll() error {
 	var err error
 	habits, err = habit.Client.List()
-	if err != nil {
-		log.Fatalf("could not list habits: %s", err)
-	}
+	return err
 }
 
 func Habits() []*habit.Habit {
