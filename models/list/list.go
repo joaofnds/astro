@@ -45,10 +45,10 @@ type List struct {
 
 func NewList() List {
 	km := NewKeymap()
-	list := list.New(toItems(state.Habits()), list.NewDefaultDelegate(), 0, 5)
-	list.Title = "Habits"
-	list.AdditionalShortHelpKeys = km.ToSlice
-	return List{list, km}
+	l := list.New(toItems(state.Habits()), list.NewDefaultDelegate(), 0, 5)
+	l.Title = "Habits"
+	l.AdditionalShortHelpKeys = km.ToSlice
+	return List{l, km}
 }
 
 func (m List) Init() tea.Cmd {
