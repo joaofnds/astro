@@ -66,36 +66,42 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetSize(msg.Width, msg.Height)
 
 	case tea.KeyMsg:
-		if m.list.SettingFilter() {
-			break
-		}
-
 		switch {
+		case m.list.SettingFilter():
+			break
+
+		case key.Matches(msg, m.km.add):
+			return newAddInput(m), nil
+
+		case len(m.list.VisibleItems()) == 0:
+			break
+
 		case key.Matches(msg, m.km.checkIn):
-			selected := state.At(m.list.Index())
+			selected := m.list.SelectedItem().(item).habit
 			hab, err := habit.Client.CheckIn(selected.ID, "")
 			if err != nil {
 				logger.Error.Printf("failed to add activity: %v", err)
 			} else {
 				state.SetHabit(hab)
 			}
+
+		case key.Matches(msg, m.km.view):
+			selected := m.list.SelectedItem().(item).habit
+			return show.NewShow(selected, m), nil
+
 		case key.Matches(msg, m.km.delete):
-			selected := state.At(m.list.Index())
+			selected := m.list.SelectedItem().(item).habit
+			for i, r := range m.list.Items() {
+				if it, ok := r.(item); ok && it.habit.ID == selected.ID {
+					m.list.RemoveItem(i)
+				}
+			}
 			if err := state.Delete(selected.ID); err != nil {
 				panic(err)
 			}
-			m.list.RemoveItem(m.list.Index())
+			m.list.SetFilteringEnabled(false)
 			m.list.Select(util.Min(m.list.Index(), len(state.Habits())-1))
 			return m, m.list.NewStatusMessage("Removed " + selected.Name)
-
-		case key.Matches(msg, m.km.add):
-			return newAddInput(m), nil
-
-		case key.Matches(msg, m.km.view):
-			if len(m.list.VisibleItems()) > 0 {
-				selected := state.At(m.list.Index())
-				return show.NewShow(selected, m), nil
-			}
 		}
 	}
 
