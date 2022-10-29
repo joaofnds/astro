@@ -85,6 +85,10 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.VCheckIn):
 			return desc.NewDesc(m.habit, m), nil
 		case key.Matches(msg, m.keys.Delete):
+			if !date.SameDay(m.selectedDate(), date.Today()) {
+				break
+			}
+
 			activity, err := m.habit.LatestActivityOnDate(m.selectedDate())
 			if err != nil {
 				break // no activity on date
