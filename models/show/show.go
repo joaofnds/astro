@@ -84,6 +84,10 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, m.keys.VCheckIn):
 			return desc.NewDesc(m.habit, m), nil
+		case key.Matches(msg, m.keys.Edit):
+			if activity, err := m.habit.LatestActivityOnDate(m.selectedDate()); err == nil {
+				return desc.NewEditEditDesc(m.habit, &activity, m), nil
+			}
 		case key.Matches(msg, m.keys.Delete):
 			if !date.SameDay(m.selectedDate(), date.Today()) {
 				break
@@ -97,7 +101,6 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				logger.Debug.Printf("failed to delete activity: %v", err)
 				break
 			}
-
 			state.DeleteActivity(m.habit, activity)
 		case key.Matches(msg, m.keys.Up):
 			m.selected = util.Max(m.selected-1, 0)

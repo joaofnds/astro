@@ -77,6 +77,11 @@ func (d *client) Delete(id string) error {
 	return err
 }
 
+func (d *client) UpdateActivity(habit Habit, activity Activity) error {
+	_, err := d.api.UpdateActivity(d.token, habit.ID, activity.Id, activity.Desc)
+	return err
+}
+
 func (d *client) DeleteActivity(habit Habit, activity Activity) error {
 	_, err := d.api.DeleteActivity(d.token, habit.ID, activity.Id)
 	return err

@@ -47,6 +47,14 @@ func SetHabit(h *habit.Habit) {
 	}
 }
 
+func UpdateActivity(h *habit.Habit, activity *habit.Activity) {
+	for i, a := range h.Activities {
+		if a.Id == activity.Id {
+			h.Activities[i] = *activity
+		}
+	}
+}
+
 func DeleteActivity(h *habit.Habit, activity habit.Activity) {
 	for i, a := range h.Activities {
 		if a.Id == activity.Id {

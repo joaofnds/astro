@@ -5,6 +5,7 @@ import "github.com/charmbracelet/bubbles/key"
 type keymap struct {
 	CheckIn  key.Binding
 	VCheckIn key.Binding
+	Edit     key.Binding
 	Delete   key.Binding
 	Help     key.Binding
 	Quit     key.Binding
@@ -15,13 +16,14 @@ type keymap struct {
 }
 
 func (k keymap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Left, k.Down, k.Up, k.Right, k.CheckIn, k.VCheckIn, k.Delete, k.Help, k.Quit}
+	return []key.Binding{k.Left, k.Down, k.Up, k.Right, k.CheckIn, k.Edit, k.Delete}
 }
 
 func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Up, k.Down, k.Left, k.Right},
-		{k.CheckIn, k.Delete, k.Help, k.Quit},
+		{k.Left, k.Down, k.Up, k.Right},
+		{k.CheckIn, k.VCheckIn, k.Edit, k.Delete},
+		{k.Help, k.Quit},
 	}
 }
 
@@ -29,11 +31,15 @@ func NewKeymap() keymap {
 	return keymap{
 		CheckIn: key.NewBinding(
 			key.WithKeys("c"),
-			key.WithHelp("c", "check in"),
+			key.WithHelp("c", "check-in"),
 		),
 		VCheckIn: key.NewBinding(
 			key.WithKeys("C"),
-			key.WithHelp("C", "verbose check in"),
+			key.WithHelp("C", "verbose check-in"),
+		),
+		Edit: key.NewBinding(
+			key.WithKeys("e"),
+			key.WithHelp("e", "edit"),
 		),
 		Delete: key.NewBinding(
 			key.WithKeys("d"),

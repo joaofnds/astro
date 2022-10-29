@@ -4,32 +4,34 @@ import (
 	"astro/habit"
 	"astro/logger"
 	"astro/state"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Desc struct {
+type EditDesc struct {
 	habit       *habit.Habit
+	activity    *habit.Activity
 	parent      tea.Model
 	description string
 	textarea    textarea.Model
 }
 
-func NewDesc(habit *habit.Habit, parent tea.Model) Desc {
+func NewEditEditDesc(habit *habit.Habit, activity *habit.Activity, parent tea.Model) EditDesc {
 	ta := textarea.New()
-	ta.Placeholder = "Check-in description"
+	ta.SetValue(strings.TrimSpace(activity.Desc))
 	ta.Focus()
 	ta.SetWidth(80)
 
-	return Desc{habit: habit, parent: parent, textarea: ta}
+	return EditDesc{habit: habit, activity: activity, parent: parent, textarea: ta}
 }
 
-func (m Desc) Init() tea.Cmd {
+func (m EditDesc) Init() tea.Cmd {
 	return textarea.Blink
 }
 
-func (m Desc) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m EditDesc) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var taCmd tea.Cmd
 
 	m.textarea, taCmd = m.textarea.Update(msg)
@@ -40,12 +42,11 @@ func (m Desc) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m.parent, nil
 		case tea.KeyEnter:
-			hab, err := habit.Client.CheckIn(m.habit.ID, m.textarea.Value())
-			if err != nil {
-				logger.Error.Printf("failed to add activity: %v", err)
-			} else {
-				state.SetHabit(hab)
+			m.activity.Desc = m.textarea.Value()
+			if err := habit.Client.UpdateActivity(*m.habit, *m.activity); err != nil {
+				logger.Error.Printf("failed to update activity: %v", err)
 			}
+			state.UpdateActivity(m.habit, m.activity)
 			return m.parent, nil
 		}
 	}
@@ -53,6 +54,6 @@ func (m Desc) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, taCmd
 }
 
-func (m Desc) View() string {
+func (m EditDesc) View() string {
 	return "Check-In Description: \n\n" + m.textarea.View()
 }
