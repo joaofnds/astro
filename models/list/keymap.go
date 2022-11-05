@@ -36,5 +36,5 @@ func NewKeymap() keymap {
 }
 
 func (k keymap) ToSlice() []key.Binding {
-	return []key.Binding{k.add, k.delete, k.view}
+	return []key.Binding{k.add, k.view, k.rename, k.delete}
 }
