@@ -2,13 +2,14 @@ package list
 
 import (
 	"astro/state"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type (
-	errMsg  error
+	errMsg error
 )
 
 type model struct {
@@ -40,7 +41,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEsc, tea.KeyCtrlC:
 			return m.parent, nil
 		case tea.KeyEnter:
-			h := state.Add(m.input.Value())
+			trimmed := strings.TrimSpace(m.input.Value())
+			if trimmed == "" {
+				break
+			}
+			h := state.Add(trimmed)
 			m.parent.list.SetItems(toItems(state.Habits()))
 			m.parent.list.ResetSelected()
 			return m.parent, m.parent.list.NewStatusMessage("Added " + h.Name)
