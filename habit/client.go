@@ -72,6 +72,11 @@ func (d *client) Create(name string) (*Habit, error) {
 	return &h, nil
 }
 
+func (d *client) Update(habit *Habit) error {
+	_, err := d.api.Update(d.token, habit.ID, habit.Name)
+	return err
+}
+
 func (d *client) Delete(id string) error {
 	_, err := d.api.Delete(d.token, id)
 	return err

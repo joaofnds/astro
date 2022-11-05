@@ -5,6 +5,7 @@ import "github.com/charmbracelet/bubbles/key"
 type keymap struct {
 	checkIn key.Binding
 	add     key.Binding
+	rename  key.Binding
 	delete  key.Binding
 	view    key.Binding
 }
@@ -18,6 +19,10 @@ func NewKeymap() keymap {
 		add: key.NewBinding(
 			key.WithKeys("a"),
 			key.WithHelp("a", "add"),
+		),
+		rename: key.NewBinding(
+			key.WithKeys("r"),
+			key.WithHelp("r", "rename"),
 		),
 		delete: key.NewBinding(
 			key.WithKeys("d"),

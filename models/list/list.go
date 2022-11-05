@@ -5,6 +5,7 @@ import (
 	"astro/habit"
 	"astro/histogram"
 	"astro/logger"
+	"astro/models/name"
 	"astro/models/show"
 	"astro/state"
 	"astro/util"
@@ -88,6 +89,10 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.km.view):
 			selected := m.list.SelectedItem().(item).habit
 			return show.NewShow(selected, m), nil
+
+		case key.Matches(msg, m.km.rename):
+			selected := m.list.SelectedItem().(item).habit
+			return name.NewEditName(selected, m), nil
 
 		case key.Matches(msg, m.km.delete):
 			selected := m.list.SelectedItem().(item).habit

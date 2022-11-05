@@ -48,6 +48,15 @@ func (a API) Get(token, id string) (*http.Response, error) {
 	)
 }
 
+func (a API) Update(token, id, name string) (*http.Response, error) {
+	return req(
+		http.MethodPatch,
+		a.baseURL+"/habits/"+id,
+		map[string]string{"Authorization": token, "Content-Type": "application/json"},
+		strings.NewReader(fmt.Sprintf(`{"name":%q}`, name)),
+	)
+}
+
 func (a API) Delete(token, id string) (*http.Response, error) {
 	return req(
 		http.MethodDelete,
