@@ -42,6 +42,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEnter:
 			h := state.Add(m.input.Value())
 			m.parent.list.SetItems(toItems(state.Habits()))
+			m.parent.list.ResetSelected()
 			return m.parent, m.parent.list.NewStatusMessage("Added " + h.Name)
 		}
 
