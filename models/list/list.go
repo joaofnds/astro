@@ -27,7 +27,7 @@ func (i item) lastActivity() string {
 		return "no activities"
 	}
 
-	return "last activity at " + i.habit.LatestActivity().Format(config.DateFormat)
+	return "last activity at " + i.habit.LatestActivity().Local().Format(config.DateFormat)
 }
 
 func (i item) FilterValue() string { return i.habit.Name }
