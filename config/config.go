@@ -11,3 +11,8 @@ const (
 	Graphic         = "⬛"
 	SelectedGraphic = "⚫"
 )
+
+var (
+	Width  int
+	Height int
+)

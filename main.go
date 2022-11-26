@@ -20,9 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 	habit.InitClient(tok)
-	if err := state.GetAll(); err != nil {
-		log.Fatal(err)
-	}
+	state.GetAll()
 	p := tea.NewProgram(list.NewList(), tea.WithAltScreen())
 	if err := p.Start(); err != nil {
 		log.Fatal(err)

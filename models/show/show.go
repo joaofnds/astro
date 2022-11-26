@@ -9,7 +9,6 @@ import (
 	"astro/models/desc"
 	"astro/state"
 	"astro/util"
-	"fmt"
 	"strings"
 	"time"
 
@@ -39,15 +38,18 @@ type Show struct {
 func NewShow(habit *habit.Habit, parent tea.Model) Show {
 	t, _ := date.TimeFrame()
 	selected := date.DiffInDays(t, date.Today())
+	h := help.New()
+	h.Width = config.Width
 	return Show{
 		habit:    habit,
 		parent:   parent,
 		selected: selected,
 		t:        t,
-		help:     help.New(),
+		help:     h,
 		keys:     NewKeymap(),
 	}
 }
+
 func (m Show) selectedDate() time.Time {
 	return m.t.AddDate(0, 0, m.selected)
 }
@@ -61,8 +63,8 @@ func (m Show) View() string {
 	s.Grow(11_000)
 
 	s.WriteString(name.Render(m.habit.Name) + "\n")
-	s.WriteString(histogram.Histogram(m.t, *m.habit, m.selected))
-	s.WriteString(activitiesOnDate(m.habit, m.selectedDate()))
+	s.WriteString(histogram.Histogram(m.t, m.habit.Activities, m.selected))
+	s.WriteString(habit.ActivitiesOnDate(m.habit.Activities, m.selectedDate()))
 	s.WriteString(timeline(m.habit, m.selectedDate()))
 	s.WriteString(m.help.View(m.keys))
 
@@ -71,8 +73,6 @@ func (m Show) View() string {
 
 func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.help.Width = msg.Width
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.CheckIn):
@@ -121,20 +121,6 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
-}
-
-func activitiesOnDate(h *habit.Habit, t time.Time) string {
-	var count int
-	for _, a := range h.Activities {
-		if date.SameDay(a.CreatedAt, t) {
-			count++
-		}
-	}
-	w := "activities"
-	if count == 1 {
-		w = "activity"
-	}
-	return fmt.Sprintf("%d %s on %s\n", count, w, t.Format(config.DateFormat))
 }
 
 func timeline(h *habit.Habit, t time.Time) string {

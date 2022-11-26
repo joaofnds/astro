@@ -4,6 +4,7 @@ import (
 	"astro/habit"
 	"astro/logger"
 	"astro/state"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
@@ -40,7 +41,8 @@ func (m Desc) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m.parent, nil
 		case tea.KeyEnter:
-			hab, err := habit.Client.CheckIn(m.habit.ID, m.textarea.Value())
+			trimmed := strings.TrimSpace(m.textarea.Value())
+			hab, err := habit.Client.CheckIn(m.habit.ID, trimmed)
 			if err != nil {
 				logger.Error.Printf("failed to add activity: %v", err)
 			} else {

@@ -2,7 +2,9 @@ package habit
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
+	"net/http"
 	"sort"
 )
 
@@ -44,7 +46,7 @@ func (d *client) List() ([]*Habit, error) {
 	})
 
 	for _, h := range habits {
-		sortActivities(h)
+		sortActivities(h.Activities)
 	}
 
 	return habits, err
@@ -68,7 +70,7 @@ func (d *client) Create(name string) (*Habit, error) {
 		return &h, err
 	}
 
-	sortActivities(&h)
+	sortActivities(h.Activities)
 	return &h, nil
 }
 
@@ -92,6 +94,105 @@ func (d *client) DeleteActivity(habit Habit, activity Activity) error {
 	return err
 }
 
+func (d *client) CreateGroup(name string) (Group, error) {
+	var group Group
+
+	res, err := d.api.CreateGroup(d.token, name)
+	if err != nil {
+		return group, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusCreated {
+		return group, fmt.Errorf("failed to create group (code %d != %d)", res.StatusCode, http.StatusCreated)
+	}
+
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return group, fmt.Errorf("failed to create group: %s", err)
+	}
+
+	return group, json.Unmarshal(b, &group)
+}
+
+func (d *client) AddToGroup(habit Habit, group Group) error {
+	res, err := d.api.AddToGroup(d.token, habit.ID, group.ID)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != http.StatusCreated {
+		return fmt.Errorf("failed to create group (code %d != %d)", res.StatusCode, http.StatusCreated)
+	}
+
+	return nil
+}
+
+func (d *client) RemoveFromGroup(habit Habit, group Group) error {
+	res, err := d.api.RemoveFromGroup(d.token, habit.ID, group.ID)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to remove from group (code %d != %d)", res.StatusCode, http.StatusOK)
+	}
+
+	return nil
+}
+
+func (d *client) DeleteGroup(group Group) error {
+	res, err := d.api.DeleteGroup(d.token, group.ID)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to delete group (code %d != %d)", res.StatusCode, http.StatusOK)
+	}
+
+	return nil
+}
+
+func (d *client) GroupsAndHabits() ([]*Group, []*Habit, error) {
+	res, err := d.api.GroupsAndHabits(d.token)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, nil, fmt.Errorf("failed to create group (code %d != %d)", res.StatusCode, http.StatusOK)
+	}
+
+	str, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	data := GroupsAndHabitsPayload{}
+
+	if err := json.Unmarshal(str, &data); err != nil {
+		return nil, nil, err
+	}
+
+	for _, h := range data.Habits {
+		sortActivities(h.Activities)
+	}
+
+	sort.SliceStable(data.Groups, func(i, j int) bool {
+		return data.Groups[i].Name < data.Groups[j].Name
+	})
+
+	for _, g := range data.Groups {
+		for _, h := range g.Habits {
+			sortActivities(h.Activities)
+		}
+	}
+
+	return data.Groups, data.Habits, nil
+}
+
 func (d *client) Get(id string) (*Habit, error) {
 	h := Habit{}
 
@@ -107,7 +208,7 @@ func (d *client) Get(id string) (*Habit, error) {
 	}
 
 	err = json.Unmarshal(b, &h)
-	sortActivities(&h)
+	sortActivities(h.Activities)
 	return &h, err
 }
 
@@ -119,4 +220,9 @@ func (d *client) CheckIn(id, desc string) (*Habit, error) {
 
 	h, err := d.Get(id)
 	return h, err
+}
+
+type GroupsAndHabitsPayload struct {
+	Groups []*Group `json:"groups"`
+	Habits []*Habit `json:"habits"`
 }

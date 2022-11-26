@@ -3,10 +3,12 @@ package list
 import (
 	"astro/config"
 	"astro/habit"
-	"astro/histogram"
 	"astro/logger"
+	"astro/models/add_to_group"
+	"astro/models/group"
 	"astro/models/name"
 	"astro/models/show"
+	"astro/msgs"
 	"astro/state"
 	"astro/util"
 
@@ -15,41 +17,25 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type item struct{ habit *habit.Habit }
-
-func (i item) Title() string { return i.habit.Name }
-func (i item) Description() string {
-	return histogram.ShortLineHistogram(*i.habit, config.ShortHistSize) + " " + i.lastActivity()
-}
-
-func (i item) lastActivity() string {
-	if len(i.habit.Activities) == 0 {
-		return "no activities"
-	}
-
-	return "last activity at " + i.habit.LatestActivity().Local().Format(config.DateFormat)
-}
-
-func (i item) FilterValue() string { return i.habit.Name }
-func toItems(habits []*habit.Habit) []list.Item {
-	items := make([]list.Item, len(habits))
-	for i, h := range habits {
-		items[i] = item{h}
-	}
-	return items
-}
-
 type List struct {
 	list list.Model
-	km   keymap
+	km   habitBinds
 }
 
 func NewList() List {
-	km := NewKeymap()
-	l := list.New(toItems(state.Habits()), list.NewDefaultDelegate(), 0, 5)
+	l := list.New(items(), list.NewDefaultDelegate(), 0, 5)
+	km := NewHabitBinds()
 	l.Title = "Habits"
 	l.AdditionalShortHelpKeys = km.ToSlice
-	return List{l, km}
+	return List{list: l, km: km}
+}
+
+func items() []list.Item {
+	habits, groups := habitsToItems(state.Habits()), groupsToItems(state.Groups())
+	items := make([]list.Item, 0, len(habits)+len(groups))
+	items = append(items, habits...)
+	items = append(items, groups...)
+	return items
 }
 
 func (m List) Init() tea.Cmd {
@@ -61,9 +47,17 @@ func (m List) View() string {
 }
 
 func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
+	case msgs.Msg:
+		switch msg {
+		case msgs.MsgUpdateList:
+			cmds = append(cmds, m.list.SetItems(items()))
+		}
 
 	case tea.WindowSizeMsg:
+		config.Width, config.Height = msg.Width, msg.Height
 		m.list.SetSize(msg.Width, msg.Height)
 
 	case tea.KeyMsg:
@@ -74,43 +68,65 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.km.add):
 			return newAddInput(m), nil
 
+		case key.Matches(msg, m.km.addGroup):
+			return group.NewAddGroup(m), nil
+
 		case len(m.list.VisibleItems()) == 0:
 			break
 
-		case key.Matches(msg, m.km.checkIn):
-			selected := m.list.SelectedItem().(item).habit
-			hab, err := habit.Client.CheckIn(selected.ID, "")
-			if err != nil {
-				logger.Error.Printf("failed to add activity: %v", err)
-			} else {
-				state.SetHabit(hab)
-			}
+		default:
+			switch m.list.SelectedItem().(type) {
+			case habitItem:
+				selected := m.list.SelectedItem().(habitItem).habit
+				switch {
+				case key.Matches(msg, m.km.view):
+					return show.NewShow(selected, m), nil
 
-		case key.Matches(msg, m.km.view):
-			selected := m.list.SelectedItem().(item).habit
-			return show.NewShow(selected, m), nil
+				case key.Matches(msg, m.km.rename):
+					return name.NewEditName(selected, m), nil
 
-		case key.Matches(msg, m.km.rename):
-			selected := m.list.SelectedItem().(item).habit
-			return name.NewEditName(selected, m), nil
+				case key.Matches(msg, m.km.addToGroup):
+					selected := m.list.SelectedItem().(habitItem).habit
+					return add_to_group.NewChooseGroup(m, selected), nil
 
-		case key.Matches(msg, m.km.delete):
-			selected := m.list.SelectedItem().(item).habit
-			for i, r := range m.list.Items() {
-				if it, ok := r.(item); ok && it.habit.ID == selected.ID {
-					m.list.RemoveItem(i)
+				case key.Matches(msg, m.km.delete):
+					for i, r := range m.list.Items() {
+						if it, ok := r.(habitItem); ok && it.habit.ID == selected.ID {
+							m.list.RemoveItem(i)
+						}
+					}
+					if err := state.Delete(selected.ID); err != nil {
+						panic(err)
+					}
+					m.list.SetFilteringEnabled(false)
+					m.list.Select(util.Min(m.list.Index(), len(state.Habits())-1))
+					return m, m.list.NewStatusMessage("Removed " + selected.Name)
+
+				case key.Matches(msg, m.km.checkIn):
+					selected := m.list.SelectedItem().(habitItem).habit
+					hab, err := habit.Client.CheckIn(selected.ID, "")
+					if err != nil {
+						logger.Error.Printf("failed to add activity: %v", err)
+					} else {
+						state.SetHabit(hab)
+					}
+				}
+			case groupItem:
+				selected := m.list.SelectedItem().(groupItem).group
+				switch {
+				case key.Matches(msg, m.km.view):
+					return group.NewShow(selected, m), nil
+
+				case key.Matches(msg, m.km.delete):
+					state.DeleteGroup(*selected)
+					cmds = append(cmds, msgs.UpdateList)
 				}
 			}
-			if err := state.Delete(selected.ID); err != nil {
-				panic(err)
-			}
-			m.list.SetFilteringEnabled(false)
-			m.list.Select(util.Min(m.list.Index(), len(state.Habits())-1))
-			return m, m.list.NewStatusMessage("Removed " + selected.Name)
 		}
 	}
 
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
-	return m, cmd
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
 }

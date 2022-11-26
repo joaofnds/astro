@@ -1,4 +1,4 @@
-package list
+package group
 
 import (
 	"astro/msgs"
@@ -14,14 +14,14 @@ type (
 )
 
 type model struct {
-	parent List
+	parent tea.Model
 	input  textinput.Model
 	err    error
 }
 
-func newAddInput(parent List) model {
+func NewAddGroup(parent tea.Model) model {
 	input := textinput.New()
-	input.Placeholder = "Read"
+	input.Placeholder = "Health"
 	input.Focus()
 	input.CharLimit = 50
 	input.Width = 20
@@ -46,11 +46,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if trimmed == "" {
 				break
 			}
-			h := state.Add(trimmed)
-			return m.parent, tea.Batch(
-				m.parent.list.NewStatusMessage("Added "+h.Name),
-				msgs.UpdateList,
-			)
+			state.AddGroup(trimmed)
+			return m.parent, msgs.UpdateList
 		}
 
 	case errMsg:
@@ -63,5 +60,5 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	return "What is the name of your new habit?\n" + m.input.View() + "\n\n(esc to quit)"
+	return "What is the name of your new group?\n" + m.input.View() + "\n\n(esc to quit)"
 }
