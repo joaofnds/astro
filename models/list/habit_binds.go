@@ -27,8 +27,8 @@ func NewHabitBinds() habitBinds {
 			key.WithHelp("r", "rename"),
 		),
 		delete: key.NewBinding(
-			key.WithKeys("d"),
-			key.WithHelp("d", "delete"),
+			key.WithKeys("D"),
+			key.WithHelp("D", "delete"),
 		),
 		addGroup: key.NewBinding(
 			key.WithKeys("G"),
