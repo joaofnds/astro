@@ -176,6 +176,10 @@ func (d *client) GroupsAndHabits() ([]*Group, []*Habit, error) {
 		return nil, nil, err
 	}
 
+	sort.SliceStable(data.Habits, func(i, j int) bool {
+		return data.Habits[i].Name < data.Habits[j].Name
+	})
+
 	for _, h := range data.Habits {
 		sortActivities(h.Activities)
 	}
