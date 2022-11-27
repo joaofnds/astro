@@ -6,6 +6,7 @@ import (
 	"astro/logger"
 	"astro/models/add_to_group"
 	"astro/models/group"
+	"astro/models/listitem"
 	"astro/models/name"
 	"astro/models/show"
 	"astro/msgs"
@@ -31,7 +32,7 @@ func NewList() List {
 }
 
 func items() []list.Item {
-	habits, groups := habitsToItems(state.Habits()), groupsToItems(state.Groups())
+	habits, groups := listitem.HabitsToItems(state.Habits()), listitem.GroupsToItems(state.Groups())
 	items := make([]list.Item, 0, len(habits)+len(groups))
 	items = append(items, habits...)
 	items = append(items, groups...)
@@ -76,8 +77,8 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		default:
 			switch m.list.SelectedItem().(type) {
-			case habitItem:
-				selected := m.list.SelectedItem().(habitItem).habit
+			case listitem.HabitItem:
+				selected := m.list.SelectedItem().(listitem.HabitItem).Habit
 				switch {
 				case key.Matches(msg, m.km.view):
 					return show.NewShow(selected, m), nil
@@ -86,12 +87,12 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return name.NewEditName(selected, m), nil
 
 				case key.Matches(msg, m.km.addToGroup):
-					selected := m.list.SelectedItem().(habitItem).habit
+					selected := m.list.SelectedItem().(listitem.HabitItem).Habit
 					return add_to_group.NewChooseGroup(m, selected), nil
 
 				case key.Matches(msg, m.km.delete):
 					for i, r := range m.list.Items() {
-						if it, ok := r.(habitItem); ok && it.habit.ID == selected.ID {
+						if it, ok := r.(listitem.HabitItem); ok && it.Habit.ID == selected.ID {
 							m.list.RemoveItem(i)
 						}
 					}
@@ -103,7 +104,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, m.list.NewStatusMessage("Removed " + selected.Name)
 
 				case key.Matches(msg, m.km.checkIn):
-					selected := m.list.SelectedItem().(habitItem).habit
+					selected := m.list.SelectedItem().(listitem.HabitItem).Habit
 					hab, err := habit.Client.CheckIn(selected.ID, "")
 					if err != nil {
 						logger.Error.Printf("failed to add activity: %v", err)
@@ -111,8 +112,8 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						state.SetHabit(hab)
 					}
 				}
-			case groupItem:
-				selected := m.list.SelectedItem().(groupItem).group
+			case listitem.GroupItem:
+				selected := m.list.SelectedItem().(listitem.GroupItem).Group
 				switch {
 				case key.Matches(msg, m.km.view):
 					return group.NewShow(selected, m), nil

@@ -1,4 +1,4 @@
-package list
+package listitem
 
 import (
 	"astro/config"
@@ -8,20 +8,20 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 )
 
-type groupItem struct {
-	group      *habit.Group
+type GroupItem struct {
+	Group      *habit.Group
 	activities []habit.Activity
 }
 
-func (i groupItem) FilterValue() string { return i.Title() }
+func (i GroupItem) FilterValue() string { return i.Title() }
 
-func (i groupItem) Title() string {
-	out := i.group.Name
+func (i GroupItem) Title() string {
+	out := i.Group.Name
 
-	lenHabits := len(i.group.Habits)
+	lenHabits := len(i.Group.Habits)
 	if lenHabits > 0 {
 		out += " ("
-		for i, h := range i.group.Habits {
+		for i, h := range i.Group.Habits {
 			out += h.Name
 			if i < lenHabits-1 {
 				out += ", "
@@ -32,11 +32,11 @@ func (i groupItem) Title() string {
 	return out
 }
 
-func (i groupItem) Description() string {
+func (i GroupItem) Description() string {
 	return histogram.ShortLineHistogram(i.activities, config.ShortHistSize) + " " + i.lastActivity()
 }
 
-func (i groupItem) lastActivity() string {
+func (i GroupItem) lastActivity() string {
 	if len(i.activities) == 0 {
 		return "no activities"
 	}
@@ -44,11 +44,11 @@ func (i groupItem) lastActivity() string {
 	return "last activity at " + i.activities[len(i.activities)-1].CreatedAt.Local().Format(config.DateFormat)
 }
 
-func newGroupItem(g *habit.Group) groupItem {
-	return groupItem{group: g, activities: g.Activities()}
+func newGroupItem(g *habit.Group) GroupItem {
+	return GroupItem{Group: g, activities: g.Activities()}
 }
 
-func groupsToItems(groups []*habit.Group) []list.Item {
+func GroupsToItems(groups []*habit.Group) []list.Item {
 	items := make([]list.Item, len(groups))
 	for i, g := range groups {
 		items[i] = newGroupItem(g)

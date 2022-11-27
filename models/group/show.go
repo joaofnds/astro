@@ -6,6 +6,7 @@ import (
 	"astro/habit"
 	"astro/histogram"
 	"astro/logger"
+	"astro/models/listitem"
 	"astro/models/name"
 	"astro/models/show"
 	"astro/msgs"
@@ -30,7 +31,7 @@ type List struct {
 }
 
 func NewShow(g *habit.Group, parent tea.Model) List {
-	l := list.New(toItems(g.Habits), list.NewDefaultDelegate(), 0, 5)
+	l := list.New(listitem.HabitsToItems(g.Habits), list.NewDefaultDelegate(), 0, 5)
 	l.SetSize(config.Width, config.Height-9)
 
 	km := newBinds()
@@ -110,7 +111,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 
 		case key.Matches(msg, m.km.checkIn):
-			selected := m.list.SelectedItem().(habitItem).habit
+			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
 			hab, err := habit.Client.CheckIn(selected.ID, "")
 			if err != nil {
 				logger.Error.Printf("failed to add activity: %v", err)
@@ -119,17 +120,17 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.km.view):
-			selected := m.list.SelectedItem().(habitItem).habit
+			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
 			return show.NewShow(selected, m), nil
 
 		case key.Matches(msg, m.km.rename):
-			selected := m.list.SelectedItem().(habitItem).habit
+			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
 			return name.NewEditName(selected, m), nil
 
 		case key.Matches(msg, m.km.delete):
-			selected := m.list.SelectedItem().(habitItem).habit
+			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
 			for i, r := range m.list.Items() {
-				if it, ok := r.(habitItem); ok && it.habit.ID == selected.ID {
+				if it, ok := r.(listitem.HabitItem); ok && it.Habit.ID == selected.ID {
 					m.list.RemoveItem(i)
 				}
 			}
