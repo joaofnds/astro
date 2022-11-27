@@ -84,7 +84,7 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "checkin-edit":
 			var activity *habit.Activity
 			for _, a := range m.habit.Activities {
-				if a.Id == msg.ID {
+				if a.ID == msg.ID {
 					activity = &a
 				}
 			}
