@@ -6,7 +6,7 @@ import (
 	"astro/habit"
 	"astro/histogram"
 	"astro/logger"
-	"astro/models/desc"
+	"astro/models/textinput"
 	"astro/state"
 	"astro/util"
 	"strings"
@@ -73,6 +73,31 @@ func (m Show) View() string {
 
 func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case textinput.Submit:
+		switch msg.Key {
+		case "checkin":
+			if hab, err := habit.Client.CheckIn(m.habit.ID, msg.Value); err != nil {
+				logger.Error.Printf("failed to check: %v", err)
+			} else {
+				state.SetHabit(hab)
+			}
+		case "checkin-edit":
+			var activity *habit.Activity
+			for _, a := range m.habit.Activities {
+				if a.Id == msg.ID {
+					activity = &a
+				}
+			}
+			if activity == nil {
+				break
+			}
+			activity.Desc = msg.Value
+			if err := habit.Client.UpdateActivity(*m.habit, *activity); err != nil {
+				logger.Error.Printf("failed to updated activity: %v", err)
+			}
+			state.UpdateActivity(m.habit, activity)
+		}
+
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.CheckIn):
@@ -82,12 +107,15 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				state.SetHabit(hab)
 			}
+
 		case key.Matches(msg, m.keys.VCheckIn):
-			return desc.NewDesc(m.habit, m), nil
+			return textinput.New(m, "Check-In Description", "", "checkin", m.habit.ID), nil
+
 		case key.Matches(msg, m.keys.Edit):
 			if activity, err := m.habit.LatestActivityOnDate(m.selectedDate()); err == nil {
-				return desc.NewEditEditDesc(m.habit, &activity, m), nil
+				return textinput.New(m, "New Description", activity.Desc, "checkin-edit", activity.ID), nil
 			}
+
 		case key.Matches(msg, m.keys.Delete):
 			if !date.SameDay(m.selectedDate(), date.Today()) {
 				break
@@ -102,16 +130,22 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 			state.DeleteActivity(m.habit, activity)
+
 		case key.Matches(msg, m.keys.Up):
 			m.selected = util.Max(m.selected-1, 0)
+
 		case key.Matches(msg, m.keys.Down):
 			m.selected = util.Min(m.selected+1, config.TimeFrameInDays-1)
+
 		case key.Matches(msg, m.keys.Left):
 			m.selected = util.Max(m.selected-7, 0)
+
 		case key.Matches(msg, m.keys.Right):
 			m.selected = util.Min(m.selected+7, config.TimeFrameInDays-1)
+
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll // FIX: only works after resizing
+
 		case key.Matches(msg, m.keys.Quit):
 			if m.parent == nil {
 				return m, tea.Quit

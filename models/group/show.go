@@ -7,8 +7,8 @@ import (
 	"astro/histogram"
 	"astro/logger"
 	"astro/models/listitem"
-	"astro/models/name"
 	"astro/models/show"
+	"astro/models/textinput"
 	"astro/msgs"
 	"astro/state"
 	"astro/util"
@@ -69,7 +69,24 @@ func (m List) selectedDate() time.Time {
 }
 
 func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
+	case msgs.Msg:
+		switch msg {
+		case msgs.MsgUpdateList:
+			cmds = append(cmds, m.list.SetItems(listitem.HabitsToItems(m.group.Habits)))
+		}
+	case textinput.Submit:
+		switch msg.Key {
+		case "habit":
+			hab := state.Get(msg.ID)
+			hab.Name = msg.Value
+			if err := habit.Client.Update(hab); err != nil {
+				logger.Error.Printf("failed to update habit: %v", err)
+			}
+			cmds = append(cmds, msgs.UpdateList)
+		}
 	case tea.KeyMsg:
 		switch {
 		case m.list.SettingFilter():
@@ -125,7 +142,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.km.rename):
 			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
-			return name.NewEditName(selected, m), nil
+			return textinput.New(m, "New Name:", selected.Name, "habit", selected.ID), nil
 
 		case key.Matches(msg, m.km.delete):
 			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
@@ -141,9 +158,10 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	var cmd tea.Cmd
 	if !m.onHist {
+		var cmd tea.Cmd
 		m.list, cmd = m.list.Update(msg)
+		cmds = append(cmds, cmd)
 	}
-	return m, cmd
+	return m, tea.Batch(cmds...)
 }
