@@ -21,13 +21,14 @@ import (
 )
 
 type List struct {
-	group    *habit.Group
-	parent   tea.Model
-	list     list.Model
-	km       binds
-	t        time.Time
-	selected int
-	onHist   bool
+	group        *habit.Group
+	parent       tea.Model
+	list         list.Model
+	km           binds
+	t            time.Time
+	selected     int
+	lastSelected int
+	onHist       bool
 }
 
 func NewShow(g *habit.Group, parent tea.Model) List {
@@ -87,10 +88,23 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			cmds = append(cmds, msgs.UpdateList)
 		}
+
 	case tea.KeyMsg:
 		switch {
 		case m.list.SettingFilter():
 			break
+
+		case key.Matches(msg, m.km.tab):
+			m.onHist = !m.onHist
+
+			if m.onHist {
+				m.lastSelected = m.list.Index()
+				m.list.Select(-1)
+				m.selected -= config.TimeFrameInDays
+			} else {
+				m.list.Select(m.lastSelected)
+				m.selected += config.TimeFrameInDays
+			}
 
 		case m.onHist && key.Matches(msg, m.km.left):
 			m.selected = util.Max(m.selected-7, 0)
@@ -98,28 +112,11 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case m.onHist && key.Matches(msg, m.km.right):
 			m.selected = util.Min(m.selected+7, config.TimeFrameInDays-1)
 
-		case key.Matches(msg, m.km.up):
-			if m.onHist {
-				if m.selected > 0 {
-					m.selected -= 1
-				}
-			}
+		case m.onHist && key.Matches(msg, m.km.up) && m.selected > 0:
+			m.selected -= 1
 
-			if m.list.Index() == 0 {
-				m.onHist = true
-				m.selected -= config.TimeFrameInDays
-				m.list.Select(-1)
-			}
-
-		case key.Matches(msg, m.km.down):
-			if m.onHist {
-				if (m.selected+1)%7 == 0 {
-					m.onHist = false
-					m.selected += config.TimeFrameInDays
-				} else {
-					m.selected += 1
-				}
-			}
+		case m.onHist && key.Matches(msg, m.km.down) && (m.selected+1) < config.TimeFrameInDays:
+			m.selected += 1
 
 		case key.Matches(msg, m.km.quit):
 			return m.parent, msgs.UpdateList

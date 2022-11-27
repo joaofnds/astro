@@ -12,6 +12,7 @@ type binds struct {
 	down    key.Binding
 	left    key.Binding
 	right   key.Binding
+	tab     key.Binding
 }
 
 func newBinds() binds {
@@ -52,9 +53,13 @@ func newBinds() binds {
 			key.WithKeys("q", "esc"),
 			key.WithHelp("q/esc", "quit"),
 		),
+		tab: key.NewBinding(
+			key.WithKeys("tab"),
+			key.WithHelp("tab", "switch"),
+		),
 	}
 }
 
 func (k binds) ToSlice() []key.Binding {
-	return []key.Binding{k.view, k.rename, k.delete}
+	return []key.Binding{k.view, k.rename, k.delete, k.tab, k.quit}
 }
