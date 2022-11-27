@@ -45,6 +45,12 @@ func NewHabitBinds() habitBinds {
 	}
 }
 
-func (k habitBinds) ToSlice() []key.Binding {
+func (k habitBinds) ShortHelp() []key.Binding {
 	return []key.Binding{k.add, k.view, k.rename, k.delete, k.addGroup}
+}
+
+func (k habitBinds) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.checkIn, k.add, k.rename, k.delete, k.addGroup, k.addToGroup, k.view},
+	}
 }
