@@ -84,6 +84,26 @@ func (h Habit) LatestActivityOnDate(time time.Time) (Activity, error) {
 	return Activity{}, errors.New("no activity on date")
 }
 
+func sortGroups(groups []*Group) {
+	sort.SliceStable(groups, func(i, j int) bool {
+		return groups[i].Name < groups[j].Name
+	})
+
+	for _, g := range groups {
+		sortHabits(g.Habits)
+	}
+}
+
+func sortHabits(habits []*Habit) {
+	sort.SliceStable(habits, func(i, j int) bool {
+		return habits[i].Name < habits[j].Name
+	})
+
+	for _, h := range habits {
+		sortActivities(h.Activities)
+	}
+}
+
 func sortActivities(activities []Activity) {
 	sort.SliceStable(activities, func(i, j int) bool {
 		return activities[i].CreatedAt.Before(activities[j].CreatedAt)
