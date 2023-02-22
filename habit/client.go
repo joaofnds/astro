@@ -122,7 +122,7 @@ func (d *client) AddToGroup(habit Habit, group Group) error {
 	}
 
 	if res.StatusCode != http.StatusCreated {
-		return fmt.Errorf("failed to create group (code %d != %d)", res.StatusCode, http.StatusCreated)
+		return fmt.Errorf("failed to add to group (code %d != %d)", res.StatusCode, http.StatusCreated)
 	}
 
 	return nil
@@ -162,7 +162,7 @@ func (d *client) GroupsAndHabits() ([]*Group, []*Habit, error) {
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return nil, nil, fmt.Errorf("failed to create group (code %d != %d)", res.StatusCode, http.StatusOK)
+		return nil, nil, fmt.Errorf("failed to list groups (code %d != %d)", res.StatusCode, http.StatusOK)
 	}
 
 	str, err := io.ReadAll(res.Body)
