@@ -49,7 +49,7 @@ func ensureTokenExists() error {
 		return fmt.Errorf("could not stat token file: %w", err)
 	}
 
-	err = os.Mkdir(configDir, 0755)
+	err = os.MkdirAll(configDir, 0755)
 	if err != nil {
 		return fmt.Errorf("could not create dir %q: %w", configDir, err)
 	}
