@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"sort"
+	"time"
 )
 
 var Client *client
@@ -201,13 +202,19 @@ func (d *client) Get(id string) (*Habit, error) {
 	return &h, err
 }
 
-func (d *client) CheckIn(id, desc string) (*Habit, error) {
-	_, err := d.api.AddActivity(d.token, id, desc)
+type CheckInDTO struct {
+	ID   string
+	Desc string
+	Date time.Time
+}
+
+func (d *client) CheckIn(dto CheckInDTO) (*Habit, error) {
+	_, err := d.api.AddActivity(d.token, dto.ID, dto.Desc, dto.Date)
 	if err != nil {
 		return nil, err
 	}
 
-	h, err := d.Get(id)
+	h, err := d.Get(dto.ID)
 	return h, err
 }
 

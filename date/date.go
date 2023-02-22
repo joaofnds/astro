@@ -39,3 +39,17 @@ func TimeFrame() (time.Time, time.Time) {
 	beg := end.AddDate(0, 0, -config.TimeFrameInDays)
 	return beg, end
 }
+
+func CombineDateWithTime(baseDate time.Time, baseTime time.Time) time.Time {
+	return time.Date(
+		baseDate.Year(),
+		baseDate.Month(),
+		baseDate.Day(),
+
+		baseTime.Hour(),
+		baseTime.Minute(),
+		baseTime.Second(),
+		baseTime.Nanosecond(),
+		baseTime.Location(),
+	)
+}

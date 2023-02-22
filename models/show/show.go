@@ -77,7 +77,8 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case textinput.Submit:
 		switch msg.Key {
 		case "checkin":
-			if hab, err := habit.Client.CheckIn(m.habit.ID, msg.Value); err != nil {
+			dto := habit.CheckInDTO{ID: m.habit.ID, Desc: msg.Value, Date: m.checkInDate()}
+			if hab, err := habit.Client.CheckIn(dto); err != nil {
 				logger.Error.Printf("failed to check: %v", err)
 			} else {
 				state.SetHabit(hab)
@@ -102,7 +103,12 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.CheckIn):
-			hab, err := habit.Client.CheckIn(m.habit.ID, "")
+			if m.selectedDate().After(time.Now()) {
+				break
+			}
+
+			dto := habit.CheckInDTO{ID: m.habit.ID, Desc: "", Date: m.checkInDate()}
+			hab, err := habit.Client.CheckIn(dto)
 			if err != nil {
 				logger.Error.Printf("failed to add activity: %v", err)
 			} else {
@@ -110,6 +116,9 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.VCheckIn):
+			if m.selectedDate().After(time.Now()) {
+				break
+			}
 			return textinput.New(m, "Check-In Description", "", "checkin", m.habit.ID), nil
 
 		case key.Matches(msg, m.keys.Edit):
@@ -118,10 +127,6 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Delete):
-			if !date.SameDay(m.selectedDate(), date.Today()) {
-				break
-			}
-
 			activity, err := m.habit.LatestActivityOnDate(m.selectedDate())
 			if err != nil {
 				break // no activity on date
@@ -156,6 +161,10 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
+}
+
+func (m Show) checkInDate() time.Time {
+	return date.CombineDateWithTime(m.selectedDate(), time.Now().Local())
 }
 
 func timeline(h *habit.Habit, t time.Time) string {
