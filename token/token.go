@@ -1,57 +1,40 @@
 package token
 
 import (
+	"astro/config"
 	"astro/habit"
 	"errors"
 	"fmt"
 	"io"
 	"os"
-	"path"
-)
-
-var (
-	configDir string
-	tokenPath string
 )
 
 func Init() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("could not get user home dir: %w", err)
-	}
-	configDir = path.Join(home, ".config", "astro")
-	tokenPath = path.Join(configDir, "token")
-
 	if err := ensureTokenExists(); err != nil {
 		return "", fmt.Errorf("could no create token: %w", err)
 	}
 
-	f, err := os.Open(tokenPath)
+	f, err := os.Open(config.TokenFilePath)
 	if err != nil {
 		return "", fmt.Errorf("could not open token file: %w", err)
 	}
 
 	token, err := io.ReadAll(f)
 	if err != nil {
-		return "", fmt.Errorf("could not read token file(%q): %w", tokenPath, err)
+		return "", fmt.Errorf("could not read token file(%q): %w", config.TokenFilePath, err)
 	}
 
 	return string(token), nil
 }
 
 func ensureTokenExists() error {
-	_, err := os.Stat(tokenPath)
+	_, err := os.Stat(config.TokenFilePath)
 	if err == nil {
 		return nil
 	}
 
 	if !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("could not stat token file: %w", err)
-	}
-
-	err = os.MkdirAll(configDir, 0755)
-	if err != nil {
-		return fmt.Errorf("could not create dir %q: %w", configDir, err)
 	}
 
 	res, err := habit.NewAPI().CreateToken()
@@ -65,8 +48,7 @@ func ensureTokenExists() error {
 		return fmt.Errorf("could not read response body: %w", err)
 	}
 
-	err = os.WriteFile(tokenPath, b, 0644)
-	if err != nil {
+	if err = os.WriteFile(config.TokenFilePath, b, 0644); err != nil {
 		return fmt.Errorf("could not write token file: %w", err)
 	}
 
