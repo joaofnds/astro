@@ -149,7 +149,9 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return group.NewShow(selected, m), nil
 
 				case key.Matches(msg, m.groupKM.delete):
-					state.DeleteGroup(*selected)
+					if err := state.DeleteGroup(*selected); err != nil {
+						logger.Error.Printf("failed to delete group: %v", err)
+					}
 					cmds = append(cmds, msgs.UpdateList)
 				}
 			}
