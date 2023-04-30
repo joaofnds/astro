@@ -12,7 +12,6 @@ import (
 	"astro/msgs"
 	"astro/state"
 	"astro/util"
-	"fmt"
 	"strings"
 	"time"
 
@@ -61,7 +60,7 @@ func (m List) View() string {
 		s.WriteString(habit.ActivitiesOnDateTally(m.group.Habits, m.selectedDate()))
 	}
 
-	m.list.Title = fmt.Sprintf("%s - %s streak", m.group.Name, habit.Streak(m.group.Activities()))
+	m.list.Title = habit.Digest(m.group.Name, m.group.Activities())
 
 	s.WriteString("\n")
 	s.WriteString(m.list.View())

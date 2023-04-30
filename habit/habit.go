@@ -74,6 +74,41 @@ func CurrentStreakDays(activities []Activity) int {
 	return streak
 }
 
+func Momentum(activities []Activity) int {
+	var momentum int
+
+	idx := 0
+	day := date.TruncateDay(activities[idx].CreatedAt)
+
+	for {
+		if idx >= len(activities) || day.After(date.Today()) {
+			break
+		}
+
+		if date.SameDay(activities[idx].CreatedAt, day) {
+			for idx < len(activities) && date.SameDay(activities[idx].CreatedAt, day) {
+				momentum++
+				idx++
+			}
+		} else if momentum > 0 {
+			momentum--
+		}
+
+		day = day.AddDate(0, 0, 1)
+	}
+
+	return momentum
+}
+
+func Digest(name string, activities []Activity) string {
+	return fmt.Sprintf(
+		"%s - streak: %s, momentum: %d",
+		name,
+		Streak(activities),
+		Momentum(activities),
+	)
+}
+
 func (h Habit) LatestActivityOnDate(time time.Time) (Activity, error) {
 	for i := len(h.Activities) - 1; i >= 0; i-- {
 		if date.SameDay(time, h.Activities[i].CreatedAt) {

@@ -9,7 +9,6 @@ import (
 	"astro/models/textinput"
 	"astro/state"
 	"astro/util"
-	"fmt"
 	"strings"
 	"time"
 
@@ -63,7 +62,7 @@ func (m Show) View() string {
 	var s strings.Builder
 	s.Grow(11_000)
 
-	s.WriteString(name.Render(fmt.Sprintf("%s - %s streak", m.habit.Name, habit.Streak(m.habit.Activities))) + "\n")
+	s.WriteString(name.Render(habit.Digest(m.habit.Name, m.habit.Activities)) + "\n")
 	s.WriteString(histogram.Histogram(m.t, m.habit.Activities, m.selected))
 	s.WriteString(habit.ActivitiesOnDate(m.habit.Activities, m.selectedDate()))
 	s.WriteString(timeline(m.habit, m.selectedDate()))
