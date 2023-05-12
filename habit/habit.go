@@ -75,6 +75,10 @@ func CurrentStreakDays(activities []Activity) int {
 }
 
 func Momentum(activities []Activity) int {
+	if len(activities) == 0 {
+		return 0
+	}
+
 	var momentum int
 
 	idx := 0

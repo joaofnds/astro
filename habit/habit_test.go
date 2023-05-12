@@ -27,6 +27,15 @@ func TestMomentum(t *testing.T) {
 	}
 }
 
+func TestMomentumWithNoActivities(t *testing.T) {
+	expected := 0
+	got := Momentum([]Activity{})
+
+	if got != expected {
+		t.Errorf("expected %d, got %d", expected, got)
+	}
+}
+
 func TestDigest(t *testing.T) {
 	activities := []Activity{
 		{CreatedAt: date.Today().AddDate(0, 0, -5)},
