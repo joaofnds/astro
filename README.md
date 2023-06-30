@@ -1,4 +1,4 @@
-Keep you habits, like an astronaut! 🧑‍🚀
+Keep your habits, like an astronaut! 🧑‍🚀
 
 ![Screen-Recording-2022-11-05-at-6](https://user-images.githubusercontent.com/9938253/200142489-a1cb6bfb-6d68-4f48-9366-46b48cef26e1.gif)
 
