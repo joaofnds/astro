@@ -1,3 +1,5 @@
+version: 2
+
 before:
   hooks:
     - go mod tidy
@@ -10,19 +12,11 @@ builds:
       - windows
       - darwin
 
-archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
-
 checksum:
   name_template: "checksums.txt"
 
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 
 changelog:
   sort: asc
@@ -32,7 +26,7 @@ changelog:
       - "^test:"
 
 brews:
-  - tap:
+  - repository:
       owner: joaofnds
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
@@ -41,7 +35,7 @@ brews:
       email: joaofnds@joaofnds.com
     commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
     url_template: "https://github.com/joaofnds/astro/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    folder: Formula
+    directory: Formula
     homepage: "https://github.com/joaofnds/astro"
     description: "a habit tracker for your terminal with a GitHub style activity graph"
     license: "MIT"
