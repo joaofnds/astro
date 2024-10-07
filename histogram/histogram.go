@@ -73,7 +73,7 @@ func Histogram(t time.Time, activities []habit.Activity, selected int) string {
 	min, max := 0, 0
 	for _, a := range activities {
 		diffInDays := date.DiffInDays(t, a.CreatedAt)
-		if diffInDays >= 0 {
+		if diffInDays >= 0 && diffInDays < config.TimeFrameInDays {
 			hist[diffInDays]++
 
 			if hist[diffInDays] > max {
