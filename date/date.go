@@ -14,13 +14,12 @@ func TruncateDay(t time.Time) time.Time {
 }
 
 func DiffInDays(t1, t2 time.Time) int {
-	diff := int(t1.Sub(t2).Hours() / 24)
+	days := int(TruncateDay(t1).Sub(TruncateDay(t2)).Hours() / 24)
 
-	if diff < 0 {
-		return -diff
+	if days < 0 {
+		return -days
 	}
-
-	return diff
+	return days
 }
 
 func EndOfWeek(t time.Time) time.Time {
