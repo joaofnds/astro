@@ -45,16 +45,12 @@ func ShortLineHistogram(activities []habit.Activity, days int) string {
 			break
 		}
 
-		diffInDays := date.DiffInDays(start, a.CreatedAt)
+		diffInDays := date.DiffInDays(start, a.CreatedAt.Local())
 
 		hist[diffInDays]++
 
 		if hist[diffInDays] > max {
 			max = hist[diffInDays]
-		}
-
-		if hist[diffInDays] < min {
-			min = hist[diffInDays]
 		}
 	}
 
@@ -71,18 +67,20 @@ func ShortLineHistogram(activities []habit.Activity, days int) string {
 func Histogram(t time.Time, activities []habit.Activity, selected int) string {
 	hist := make([]int, config.TimeFrameInDays)
 	min, max := 0, 0
-	for _, a := range activities {
-		diffInDays := date.DiffInDays(t, a.CreatedAt)
-		if diffInDays >= 0 && diffInDays < config.TimeFrameInDays {
-			hist[diffInDays]++
+	for _, activity := range activities {
+		if activity.CreatedAt.Before(t) {
+			continue
+		}
 
-			if hist[diffInDays] > max {
-				max = hist[diffInDays]
-			}
+		diffInDays := date.DiffInDays(t, activity.CreatedAt.Local())
+		if diffInDays > config.TimeFrameInDays {
+			continue
+		}
 
-			if hist[diffInDays] < min {
-				min = hist[diffInDays]
-			}
+		hist[diffInDays]++
+
+		if hist[diffInDays] > max {
+			max = hist[diffInDays]
 		}
 	}
 
