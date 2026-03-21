@@ -4,8 +4,8 @@ import (
 	"astro/config"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/textarea"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/textarea"
+	tea "charm.land/bubbletea/v2"
 )
 
 type Submit struct {
@@ -37,11 +37,11 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyCtrlC, tea.KeyEsc:
+	case tea.KeyPressMsg:
+		switch msg.String() {
+		case "ctrl+c", "esc":
 			return m.parent, nil
-		case tea.KeyEnter:
+		case "enter":
 			trimmed := strings.TrimSpace(m.textarea.Value())
 			if trimmed == "" {
 				break
@@ -55,6 +55,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, taCmd
 }
 
-func (m Model) View() string {
-	return m.prompt + "\n" + m.textarea.View()
+func (m Model) View() tea.View {
+	v := tea.NewView(m.prompt + "\n" + m.textarea.View())
+	v.AltScreen = true
+	return v
 }

@@ -9,7 +9,7 @@ import (
 	"astro/token"
 	"log"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 func main() {
@@ -28,8 +28,8 @@ func main() {
 
 	habit.InitClient(tok)
 	state.GetAll()
-	p := tea.NewProgram(list.NewList(), tea.WithAltScreen())
-	if err := p.Start(); err != nil {
+	p := tea.NewProgram(list.NewList())
+	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
 	}
 }

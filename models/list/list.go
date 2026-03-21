@@ -15,10 +15,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/help"
-	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/help"
+	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
 )
 
 type List struct {
@@ -52,7 +52,7 @@ func (m List) Init() tea.Cmd {
 	return nil
 }
 
-func (m List) View() string {
+func (m List) View() tea.View {
 	var s strings.Builder
 	s.WriteString(m.list.View() + "\n")
 	switch m.list.SelectedItem().(type) {
@@ -61,7 +61,9 @@ func (m List) View() string {
 	case listitem.GroupItem:
 		s.WriteString(m.help.View(m.groupKM))
 	}
-	return s.String()
+	v := tea.NewView(s.String())
+	v.AltScreen = true
+	return v
 }
 
 func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -89,7 +91,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, msgs.UpdateList)
 		}
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch {
 		case m.list.SettingFilter():
 			break

@@ -5,8 +5,8 @@ import (
 	"astro/state"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
 )
 
 type (
@@ -24,7 +24,7 @@ func NewAddGroup(parent tea.Model) model {
 	input.Placeholder = "Health"
 	input.Focus()
 	input.CharLimit = 50
-	input.Width = 20
+	input.SetWidth(20)
 
 	return model{parent: parent, input: input, err: nil}
 }
@@ -37,11 +37,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyEsc, tea.KeyCtrlC:
+	case tea.KeyPressMsg:
+		switch msg.String() {
+		case "esc", "ctrl+c":
 			return m.parent, nil
-		case tea.KeyEnter:
+		case "enter":
 			trimmed := strings.TrimSpace(m.input.Value())
 			if trimmed == "" {
 				break
@@ -59,6 +59,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m model) View() string {
-	return "What is the name of your new group?\n" + m.input.View() + "\n\n(esc to quit)"
+func (m model) View() tea.View {
+	v := tea.NewView("What is the name of your new group?\n" + m.input.View() + "\n\n(esc to quit)")
+	v.AltScreen = true
+	return v
 }

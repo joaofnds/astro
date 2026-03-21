@@ -1,6 +1,6 @@
 package show
 
-import "github.com/charmbracelet/bubbles/key"
+import "charm.land/bubbles/v2/key"
 
 type keymap struct {
 	CheckIn  key.Binding

@@ -1,6 +1,6 @@
 package list
 
-import "github.com/charmbracelet/bubbles/key"
+import "charm.land/bubbles/v2/key"
 
 type listBinds struct {
 	add      key.Binding

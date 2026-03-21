@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
 )
 
 type List struct {
@@ -49,7 +49,7 @@ func (m List) Init() tea.Cmd {
 	return nil
 }
 
-func (m List) View() string {
+func (m List) View() tea.View {
 	activities := m.group.Activities()
 	var s strings.Builder
 	s.WriteString(histogram.Histogram(m.t, activities, m.selected))
@@ -64,7 +64,9 @@ func (m List) View() string {
 
 	s.WriteString("\n")
 	s.WriteString(m.list.View())
-	return s.String()
+	v := tea.NewView(s.String())
+	v.AltScreen = true
+	return v
 }
 
 func (m List) selectedDate() time.Time {
@@ -91,7 +93,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, msgs.UpdateList)
 		}
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch {
 		case m.list.SettingFilter():
 			break

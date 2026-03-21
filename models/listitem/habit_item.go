@@ -5,7 +5,7 @@ import (
 	"astro/habit"
 	"astro/histogram"
 
-	"github.com/charmbracelet/bubbles/list"
+	"charm.land/bubbles/v2/list"
 )
 
 type HabitItem struct{ Habit *habit.Habit }

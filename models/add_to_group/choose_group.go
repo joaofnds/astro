@@ -5,8 +5,8 @@ import (
 	"astro/msgs"
 	"astro/state"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
 )
 
 type item struct{ group *habit.Group }
@@ -39,8 +39,10 @@ func (m ChooseGroup) Init() tea.Cmd {
 	return nil
 }
 
-func (m ChooseGroup) View() string {
-	return m.list.View()
+func (m ChooseGroup) View() tea.View {
+	v := tea.NewView(m.list.View())
+	v.AltScreen = true
+	return v
 }
 
 func (m ChooseGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -49,7 +51,7 @@ func (m ChooseGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.list.SetSize(msg.Width, msg.Height)
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch {
 		case m.list.SettingFilter():
 			break
@@ -57,10 +59,10 @@ func (m ChooseGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case len(m.list.VisibleItems()) == 0:
 			break
 
-		case msg.Type == tea.KeyEsc:
+		case msg.String() == "esc":
 			return m.parent, nil
 
-		case msg.Type == tea.KeyEnter:
+		case msg.String() == "enter":
 			group := m.list.SelectedItem().(item).group
 			state.AddToGroup(*m.habit, *group)
 			return m.parent, msgs.UpdateList

@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/help"
-	"github.com/charmbracelet/bubbles/key"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/help"
+	"charm.land/bubbles/v2/key"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 var (
@@ -39,7 +39,7 @@ func NewShow(habit *habit.Habit, parent tea.Model) Show {
 	t, _ := date.TimeFrame()
 	selected := date.DiffInDays(t, date.Today())
 	h := help.New()
-	h.Width = config.Width
+	h.SetWidth(config.Width)
 	return Show{
 		habit:    habit,
 		parent:   parent,
@@ -58,7 +58,7 @@ func (m Show) Init() tea.Cmd {
 	return nil
 }
 
-func (m Show) View() string {
+func (m Show) View() tea.View {
 	var s strings.Builder
 	s.Grow(11_000)
 
@@ -68,7 +68,9 @@ func (m Show) View() string {
 	s.WriteString(timeline(m.habit, m.selectedDate()))
 	s.WriteString(m.help.View(m.keys))
 
-	return style.Render(s.String())
+	v := tea.NewView(style.Render(s.String()))
+	v.AltScreen = true
+	return v
 }
 
 func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -99,7 +101,7 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			state.UpdateActivity(m.habit, activity)
 		}
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch {
 		case key.Matches(msg, m.keys.CheckIn):
 			if m.selectedDate().After(time.Now()) {
