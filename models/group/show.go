@@ -110,17 +110,23 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selected += config.TimeFrameInDays
 			}
 
+		// ClearScreen forces a full sequential redraw on navigation.
+		// See comment in show.go for details on the emoji width issue.
 		case m.onHist && key.Matches(msg, m.km.left):
 			m.selected = util.Max(m.selected-7, 0)
+			return m, tea.ClearScreen
 
 		case m.onHist && key.Matches(msg, m.km.right):
 			m.selected = util.Min(m.selected+7, config.TimeFrameInDays-1)
+			return m, tea.ClearScreen
 
 		case m.onHist && key.Matches(msg, m.km.up) && m.selected > 0:
 			m.selected -= 1
+			return m, tea.ClearScreen
 
 		case m.onHist && key.Matches(msg, m.km.down) && (m.selected+1) < config.TimeFrameInDays:
 			m.selected += 1
+			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.km.quit):
 			return m.parent, msgs.UpdateList

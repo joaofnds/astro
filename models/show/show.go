@@ -138,17 +138,25 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			state.DeleteActivity(m.habit, activity)
 
+		// ClearScreen forces a full sequential redraw on navigation.
+		// The v2 renderer's differential updates miscalculate cursor
+		// positions for emoji characters (⬛/⚫) whose terminal width
+		// differs from what the width libraries report.
 		case key.Matches(msg, m.keys.Up):
 			m.selected = util.Max(m.selected-1, 0)
+			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.Down):
 			m.selected = util.Min(m.selected+1, config.TimeFrameInDays-1)
+			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.Left):
 			m.selected = util.Max(m.selected-7, 0)
+			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.Right):
 			m.selected = util.Min(m.selected+7, config.TimeFrameInDays-1)
+			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll // FIX: only works after resizing
