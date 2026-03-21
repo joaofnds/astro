@@ -32,7 +32,7 @@ func Init() error {
 		return fmt.Errorf("could not get user home dir: %w", err)
 	}
 
-	ConfigDirPath := path.Join(home, ".config", "astro")
+	ConfigDirPath = path.Join(home, ".config", "astro")
 	if err := os.MkdirAll(ConfigDirPath, 0755); err != nil {
 		return fmt.Errorf("could not create dir %q: %w", ConfigDirPath, err)
 	}
