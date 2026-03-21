@@ -13,8 +13,8 @@ const (
 	TimeFrameInDays = 52 * 7
 	ShortHistSize   = 14
 
-	Graphic         = "█"
-	SelectedGraphic = "▓"
+	Graphic         = "⬛"
+	SelectedGraphic = "⚫"
 )
 
 var (
