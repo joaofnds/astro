@@ -1,9 +1,9 @@
 package add_to_group
 
 import (
+	"astro/api"
 	"astro/domain"
 	"astro/msgs"
-	"astro/state"
 
 	"charm.land/bubbles/v2/list"
 	tea "charm.land/bubbletea/v2"
@@ -24,15 +24,15 @@ func toItems(groups []*domain.Group) []list.Item {
 }
 
 type ChooseGroup struct {
-	parent tea.Model
+	client *api.Client
 	list   list.Model
 	habit  *domain.Habit
 }
 
-func NewChooseGroup(parent tea.Model, h *domain.Habit) ChooseGroup {
-	l := list.New(toItems(state.Groups()), list.NewDefaultDelegate(), 1, 5)
+func NewChooseGroup(client *api.Client, h *domain.Habit, groups []*domain.Group) ChooseGroup {
+	l := list.New(toItems(groups), list.NewDefaultDelegate(), 1, 5)
 	l.Title = "Choose a group"
-	return ChooseGroup{parent: parent, list: l, habit: h}
+	return ChooseGroup{client: client, list: l, habit: h}
 }
 
 func (m ChooseGroup) Init() tea.Cmd {
@@ -40,9 +40,7 @@ func (m ChooseGroup) Init() tea.Cmd {
 }
 
 func (m ChooseGroup) View() tea.View {
-	v := tea.NewView(m.list.View())
-	v.AltScreen = true
-	return v
+	return tea.NewView(m.list.View())
 }
 
 func (m ChooseGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -60,12 +58,15 @@ func (m ChooseGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 
 		case msg.String() == "esc":
-			return m.parent, nil
+			return m, msgs.PopScreen()
 
 		case msg.String() == "enter":
 			group := m.list.SelectedItem().(item).group
-			state.AddToGroup(*m.habit, *group)
-			return m.parent, msgs.UpdateList
+			return m, func() tea.Msg {
+				return msgs.PopScreenMsg{
+					Cmd: msgs.AddToGroup(m.client, m.habit.ID, group.ID),
+				}
+			}
 		}
 	}
 

@@ -95,10 +95,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case msgs.DataLoadedMsg:
 		a.state.SetAll(msg.Habits, msg.Groups)
 		a.ready = true
-		// Push the initial list screen now that data is available.
-		// NewList() uses its current (no-param) signature; Plan 03 will
-		// change it to accept data params directly.
-		screen := list.NewList()
+		screen := list.NewList(a.client, a.state.Habits(), a.state.Groups(), a.width, a.height)
 		a.stack = append(a.stack, screen)
 		return a, screen.Init()
 
@@ -155,7 +152,9 @@ func (a App) View() tea.View {
 		return v
 	}
 	if screen := a.activeScreen(); screen != nil {
-		return screen.View()
+		v := screen.View()
+		v.AltScreen = true
+		return v
 	}
 	v := tea.NewView("")
 	v.AltScreen = true

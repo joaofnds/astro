@@ -1,15 +1,14 @@
 package group
 
 import (
+	"astro/api"
 	"astro/config"
 	"astro/date"
 	"astro/domain"
-	"astro/logger"
 	"astro/models/listitem"
 	"astro/models/show"
 	"astro/models/textinput"
 	"astro/msgs"
-	"astro/state"
 	"astro/util"
 	"strings"
 	"time"
@@ -20,19 +19,21 @@ import (
 )
 
 type List struct {
+	client       *api.Client
 	group        *domain.Group
-	parent       tea.Model
 	list         list.Model
 	km           binds
 	t            time.Time
 	selected     int
 	lastSelected int
 	onHist       bool
+	width        int
+	height       int
 }
 
-func NewShow(g *domain.Group, parent tea.Model) List {
+func NewShow(client *api.Client, g *domain.Group, width, height int) List {
 	l := list.New(listitem.HabitsToItems(g.Habits), list.NewDefaultDelegate(), 0, 5)
-	l.SetSize(config.Width, config.Height-9)
+	l.SetSize(width, height-9)
 
 	km := newBinds()
 	l.AdditionalShortHelpKeys = km.ToSlice
@@ -41,7 +42,16 @@ func NewShow(g *domain.Group, parent tea.Model) List {
 	t, _ := date.TimeFrame()
 	selected := date.DiffInDays(t, date.Today()) + config.TimeFrameInDays
 
-	return List{t: t, selected: selected, group: g, parent: parent, list: l, km: km}
+	return List{
+		client:   client,
+		t:        t,
+		selected: selected,
+		group:    g,
+		list:     l,
+		km:       km,
+		width:    width,
+		height:   height,
+	}
 }
 
 func (m List) Init() tea.Cmd {
@@ -63,9 +73,7 @@ func (m List) View() tea.View {
 
 	s.WriteString("\n")
 	s.WriteString(m.list.View())
-	v := tea.NewView(s.String())
-	v.AltScreen = true
-	return v
+	return tea.NewView(s.String())
 }
 
 func (m List) selectedDate() time.Time {
@@ -76,20 +84,28 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case msgs.Msg:
-		switch msg {
-		case msgs.MsgUpdateList:
-			cmds = append(cmds, m.list.SetItems(listitem.HabitsToItems(m.group.Habits)))
+	case msgs.CheckInResultMsg:
+		for i, h := range m.group.Habits {
+			if h.ID == msg.Habit.ID {
+				m.group.Habits[i] = msg.Habit
+				break
+			}
 		}
+		cmds = append(cmds, m.list.SetItems(listitem.HabitsToItems(m.group.Habits)))
+
+	case msgs.HabitUpdatedMsg:
+		for i, h := range m.group.Habits {
+			if h.ID == msg.Habit.ID {
+				m.group.Habits[i] = msg.Habit
+				break
+			}
+		}
+		cmds = append(cmds, m.list.SetItems(listitem.HabitsToItems(m.group.Habits)))
+
 	case textinput.Submit:
 		switch msg.Key {
 		case "habit":
-			hab := state.Get(msg.ID)
-			hab.Name = msg.Value
-			if err := state.UpdateHabit(hab); err != nil {
-				logger.Error.Printf("failed to update habit: %v", err)
-			}
-			cmds = append(cmds, msgs.UpdateList)
+			return m, msgs.UpdateHabit(m.client, msg.ID, msg.Value)
 		}
 
 	case tea.KeyPressMsg:
@@ -128,39 +144,35 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.km.quit):
-			return m.parent, msgs.UpdateList
+			return m, msgs.PopScreen()
 
 		case len(m.list.VisibleItems()) == 0:
 			break
 
 		case key.Matches(msg, m.km.checkIn):
 			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
-			hab, err := state.CheckIn(selected.ID, "", time.Now().Local())
-			if err != nil {
-				logger.Error.Printf("failed to add activity: %v", err)
-			} else {
-				state.SetHabit(hab)
-			}
+			return m, msgs.CheckIn(m.client, selected.ID, "", time.Now().Local())
 
 		case key.Matches(msg, m.km.view):
 			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
-			return show.NewShow(selected, m), nil
+			return m, msgs.PushScreen(show.NewShow(m.client, selected, m.width))
 
 		case key.Matches(msg, m.km.rename):
 			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
-			return textinput.New(m, "New Name:", selected.Name, "habit", selected.ID), nil
+			return m, msgs.PushScreen(textinput.New("New Name:", selected.Name, "habit", selected.ID, m.width))
 
 		case key.Matches(msg, m.km.delete):
 			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
 			for i, r := range m.list.Items() {
 				if it, ok := r.(listitem.HabitItem); ok && it.Habit.ID == selected.ID {
 					m.list.RemoveItem(i)
+					break
 				}
 			}
-			state.RemoveFromGroup(*selected, *m.group)
-			m.list.SetFilteringEnabled(false)
-			m.list.Select(util.Min(m.list.Index(), len(state.Habits())-1))
-			return m, m.list.NewStatusMessage("Removed " + selected.Name)
+			return m, tea.Batch(
+				msgs.RemoveFromGroup(m.client, selected.ID, m.group.ID),
+				m.list.NewStatusMessage("Removed "+selected.Name),
+			)
 		}
 	}
 

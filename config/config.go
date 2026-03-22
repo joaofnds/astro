@@ -17,14 +17,6 @@ const (
 	SelectedGraphic = "⚫"
 )
 
-// Deprecated: Width and Height are legacy package-level vars set by
-// tea.WindowSizeMsg handlers. The root model now owns terminal dimensions.
-// TODO(phase3): remove after screen rewiring (Plan 03 passes dimensions via constructors).
-var (
-	Width  int
-	Height int
-)
-
 // Config holds file paths resolved from the user's home directory.
 type Config struct {
 	ConfigDirPath string

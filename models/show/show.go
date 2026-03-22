@@ -1,12 +1,12 @@
 package show
 
 import (
+	"astro/api"
 	"astro/config"
 	"astro/date"
 	"astro/domain"
-	"astro/logger"
 	"astro/models/textinput"
-	"astro/state"
+	"astro/msgs"
 	"astro/util"
 	"strings"
 	"time"
@@ -26,26 +26,28 @@ var (
 )
 
 type Show struct {
+	client   *api.Client
 	habit    *domain.Habit
-	parent   tea.Model
 	selected int
 	t        time.Time
 	help     help.Model
 	keys     keymap
+	width    int
 }
 
-func NewShow(habit *domain.Habit, parent tea.Model) Show {
+func NewShow(client *api.Client, habit *domain.Habit, width int) Show {
 	t, _ := date.TimeFrame()
 	selected := date.DiffInDays(t, date.Today())
 	h := help.New()
-	h.SetWidth(config.Width)
+	h.SetWidth(width)
 	return Show{
+		client:   client,
 		habit:    habit,
-		parent:   parent,
 		selected: selected,
 		t:        t,
 		help:     h,
 		keys:     NewKeymap(),
+		width:    width,
 	}
 }
 
@@ -67,9 +69,7 @@ func (m Show) View() tea.View {
 	s.WriteString(timeline(m.habit, m.selectedDate()))
 	s.WriteString(m.help.View(m.keys))
 
-	v := tea.NewView(style.Render(s.String()))
-	v.AltScreen = true
-	return v
+	return tea.NewView(style.Render(s.String()))
 }
 
 func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -77,26 +77,33 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case textinput.Submit:
 		switch msg.Key {
 		case "checkin":
-			if hab, err := state.CheckIn(m.habit.ID, msg.Value, m.checkInDate()); err != nil {
-				logger.Error.Printf("failed to check: %v", err)
-			} else {
-				state.SetHabit(hab)
-			}
+			return m, msgs.CheckIn(m.client, m.habit.ID, msg.Value, m.checkInDate())
 		case "checkin-edit":
-			var activity *domain.Activity
-			for _, a := range m.habit.Activities {
-				if a.ID == msg.ID {
-					activity = &a
+			return m, msgs.UpdateActivity(m.client, m.habit.ID, msg.ID, msg.Value)
+		}
+
+	case msgs.CheckInResultMsg:
+		if msg.Habit.ID == m.habit.ID {
+			m.habit = msg.Habit
+		}
+
+	case msgs.ActivityUpdatedMsg:
+		if msg.HabitID == m.habit.ID {
+			for i, a := range m.habit.Activities {
+				if a.ID == msg.ActivityID {
+					m.habit.Activities[i].Desc = msg.Desc
 				}
 			}
-			if activity == nil {
-				break
+		}
+
+	case msgs.ActivityDeletedMsg:
+		if msg.HabitID == m.habit.ID {
+			for i, a := range m.habit.Activities {
+				if a.ID == msg.ActivityID {
+					m.habit.Activities = append(m.habit.Activities[:i], m.habit.Activities[i+1:]...)
+					break
+				}
 			}
-			activity.Desc = msg.Value
-			if err := state.UpdateHabitActivity(m.habit.ID, activity.ID, activity.Desc); err != nil {
-				logger.Error.Printf("failed to updated activity: %v", err)
-			}
-			state.UpdateActivity(m.habit, activity)
 		}
 
 	case tea.KeyPressMsg:
@@ -105,40 +112,29 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.selectedDate().After(time.Now()) {
 				break
 			}
-
-			hab, err := state.CheckIn(m.habit.ID, "", m.checkInDate())
-			if err != nil {
-				logger.Error.Printf("failed to add activity: %v", err)
-			} else {
-				state.SetHabit(hab)
-			}
+			return m, msgs.CheckIn(m.client, m.habit.ID, "", m.checkInDate())
 
 		case key.Matches(msg, m.keys.VCheckIn):
 			if m.selectedDate().After(time.Now()) {
 				break
 			}
-			return textinput.New(m, "Check-In Description", "", "checkin", m.habit.ID), nil
+			return m, msgs.PushScreen(textinput.New("Check-In Description", "", "checkin", m.habit.ID, m.width))
 
 		case key.Matches(msg, m.keys.Edit):
 			if activity, err := m.habit.LatestActivityOnDate(m.selectedDate()); err == nil {
-				return textinput.New(m, "New Description", activity.Desc, "checkin-edit", activity.ID), nil
+				return m, msgs.PushScreen(textinput.New("New Description", activity.Desc, "checkin-edit", activity.ID, m.width))
 			}
 
 		case key.Matches(msg, m.keys.Delete):
 			activity, err := m.habit.LatestActivityOnDate(m.selectedDate())
 			if err != nil {
-				break // no activity on date
-			}
-			if err := state.DeleteHabitActivity(m.habit.ID, activity.ID); err != nil {
-				logger.Debug.Printf("failed to delete activity: %v", err)
 				break
 			}
-			state.DeleteActivity(m.habit, activity)
+			return m, msgs.DeleteActivity(m.client, m.habit.ID, activity.ID)
 
 		// ClearScreen forces a full sequential redraw on navigation.
 		// The v2 renderer's differential updates miscalculate cursor
-		// positions for emoji characters (⬛/⚫) whose terminal width
-		// differs from what the width libraries report.
+		// positions for emoji characters (see original comment).
 		case key.Matches(msg, m.keys.Up):
 			m.selected = util.Max(m.selected-1, 0)
 			return m, tea.ClearScreen
@@ -156,13 +152,10 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.Help):
-			m.help.ShowAll = !m.help.ShowAll // FIX: only works after resizing
+			m.help.ShowAll = !m.help.ShowAll
 
 		case key.Matches(msg, m.keys.Quit):
-			if m.parent == nil {
-				return m, tea.Quit
-			}
-			return m.parent, nil
+			return m, msgs.PopScreen()
 		}
 	}
 

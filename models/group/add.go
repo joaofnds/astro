@@ -1,8 +1,8 @@
 package group
 
 import (
+	"astro/api"
 	"astro/msgs"
-	"astro/state"
 	"strings"
 
 	"charm.land/bubbles/v2/textinput"
@@ -14,19 +14,19 @@ type (
 )
 
 type model struct {
-	parent tea.Model
+	client *api.Client
 	input  textinput.Model
 	err    error
 }
 
-func NewAddGroup(parent tea.Model) model {
+func NewAddGroup(client *api.Client) model {
 	input := textinput.New()
 	input.Placeholder = "Health"
 	input.Focus()
 	input.CharLimit = 50
 	input.SetWidth(20)
 
-	return model{parent: parent, input: input, err: nil}
+	return model{client: client, input: input, err: nil}
 }
 
 func (m model) Init() tea.Cmd {
@@ -40,14 +40,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "esc", "ctrl+c":
-			return m.parent, nil
+			return m, msgs.PopScreen()
 		case "enter":
 			trimmed := strings.TrimSpace(m.input.Value())
 			if trimmed == "" {
 				break
 			}
-			state.AddGroup(trimmed)
-			return m.parent, msgs.UpdateList
+			return m, func() tea.Msg {
+				return msgs.PopScreenMsg{
+					Cmd: msgs.CreateGroup(m.client, trimmed),
+				}
+			}
 		}
 
 	case errMsg:
@@ -60,7 +63,5 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() tea.View {
-	v := tea.NewView("What is the name of your new group?\n" + m.input.View() + "\n\n(esc to quit)")
-	v.AltScreen = true
-	return v
+	return tea.NewView("What is the name of your new group?\n" + m.input.View() + "\n\n(esc to quit)")
 }
