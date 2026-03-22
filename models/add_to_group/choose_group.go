@@ -1,7 +1,7 @@
 package add_to_group
 
 import (
-	"astro/habit"
+	"astro/domain"
 	"astro/msgs"
 	"astro/state"
 
@@ -9,13 +9,13 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
-type item struct{ group *habit.Group }
+type item struct{ group *domain.Group }
 
 func (i item) Title() string       { return i.group.Name }
 func (i item) Description() string { return i.Title() }
 func (i item) FilterValue() string { return i.Title() }
 
-func toItems(groups []*habit.Group) []list.Item {
+func toItems(groups []*domain.Group) []list.Item {
 	items := make([]list.Item, len(groups))
 	for i, g := range groups {
 		items[i] = item{g}
@@ -26,10 +26,10 @@ func toItems(groups []*habit.Group) []list.Item {
 type ChooseGroup struct {
 	parent tea.Model
 	list   list.Model
-	habit  *habit.Habit
+	habit  *domain.Habit
 }
 
-func NewChooseGroup(parent tea.Model, h *habit.Habit) ChooseGroup {
+func NewChooseGroup(parent tea.Model, h *domain.Habit) ChooseGroup {
 	l := list.New(toItems(state.Groups()), list.NewDefaultDelegate(), 1, 5)
 	l.Title = "Choose a group"
 	return ChooseGroup{parent: parent, list: l, habit: h}

@@ -2,20 +2,19 @@ package listitem
 
 import (
 	"astro/config"
-	"astro/habit"
-	"astro/histogram"
+	"astro/domain"
 
 	"charm.land/bubbles/v2/list"
 )
 
-type HabitItem struct{ Habit *habit.Habit }
+type HabitItem struct{ Habit *domain.Habit }
 
 func (i HabitItem) FilterValue() string { return i.Title() }
 
 func (i HabitItem) Title() string { return i.Habit.Name }
 
 func (i HabitItem) Description() string {
-	return histogram.ShortLineHistogram(i.Habit.Activities, config.ShortHistSize) + " " + i.lastActivity()
+	return domain.ShortLineHistogram(i.Habit.Activities, config.ShortHistSize) + " " + i.lastActivity()
 }
 
 func (i HabitItem) lastActivity() string {
@@ -26,7 +25,7 @@ func (i HabitItem) lastActivity() string {
 	return "last activity at " + i.Habit.LatestActivity().Local().Format(config.DateFormat)
 }
 
-func HabitsToItems(habits []*habit.Habit) []list.Item {
+func HabitsToItems(habits []*domain.Habit) []list.Item {
 	items := make([]list.Item, len(habits))
 	for i, h := range habits {
 		items[i] = HabitItem{h}

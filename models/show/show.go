@@ -3,8 +3,7 @@ package show
 import (
 	"astro/config"
 	"astro/date"
-	"astro/habit"
-	"astro/histogram"
+	"astro/domain"
 	"astro/logger"
 	"astro/models/textinput"
 	"astro/state"
@@ -27,7 +26,7 @@ var (
 )
 
 type Show struct {
-	habit    *habit.Habit
+	habit    *domain.Habit
 	parent   tea.Model
 	selected int
 	t        time.Time
@@ -35,7 +34,7 @@ type Show struct {
 	keys     keymap
 }
 
-func NewShow(habit *habit.Habit, parent tea.Model) Show {
+func NewShow(habit *domain.Habit, parent tea.Model) Show {
 	t, _ := date.TimeFrame()
 	selected := date.DiffInDays(t, date.Today())
 	h := help.New()
@@ -62,9 +61,9 @@ func (m Show) View() tea.View {
 	var s strings.Builder
 	s.Grow(11_000)
 
-	s.WriteString(name.Render(habit.Digest(m.habit.Name, m.habit.Activities)) + "\n")
-	s.WriteString(histogram.Histogram(m.t, m.habit.Activities, m.selected))
-	s.WriteString(habit.ActivitiesOnDate(m.habit.Activities, m.selectedDate()))
+	s.WriteString(name.Render(domain.Digest(m.habit.Name, m.habit.Activities)) + "\n")
+	s.WriteString(domain.Histogram(m.t, m.habit.Activities, m.selected))
+	s.WriteString(domain.ActivitiesOnDate(m.habit.Activities, m.selectedDate()))
 	s.WriteString(timeline(m.habit, m.selectedDate()))
 	s.WriteString(m.help.View(m.keys))
 
@@ -78,14 +77,13 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case textinput.Submit:
 		switch msg.Key {
 		case "checkin":
-			dto := habit.CheckInDTO{ID: m.habit.ID, Desc: msg.Value, Date: m.checkInDate()}
-			if hab, err := habit.Client.CheckIn(dto); err != nil {
+			if hab, err := state.CheckIn(m.habit.ID, msg.Value, m.checkInDate()); err != nil {
 				logger.Error.Printf("failed to check: %v", err)
 			} else {
 				state.SetHabit(hab)
 			}
 		case "checkin-edit":
-			var activity *habit.Activity
+			var activity *domain.Activity
 			for _, a := range m.habit.Activities {
 				if a.ID == msg.ID {
 					activity = &a
@@ -95,7 +93,7 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 			activity.Desc = msg.Value
-			if err := habit.Client.UpdateActivity(*m.habit, *activity); err != nil {
+			if err := state.UpdateHabitActivity(m.habit.ID, activity.ID, activity.Desc); err != nil {
 				logger.Error.Printf("failed to updated activity: %v", err)
 			}
 			state.UpdateActivity(m.habit, activity)
@@ -108,8 +106,7 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			dto := habit.CheckInDTO{ID: m.habit.ID, Desc: "", Date: m.checkInDate()}
-			hab, err := habit.Client.CheckIn(dto)
+			hab, err := state.CheckIn(m.habit.ID, "", m.checkInDate())
 			if err != nil {
 				logger.Error.Printf("failed to add activity: %v", err)
 			} else {
@@ -132,7 +129,7 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err != nil {
 				break // no activity on date
 			}
-			if err := habit.Client.DeleteActivity(*m.habit, activity); err != nil {
+			if err := state.DeleteHabitActivity(m.habit.ID, activity.ID); err != nil {
 				logger.Debug.Printf("failed to delete activity: %v", err)
 				break
 			}
@@ -176,7 +173,7 @@ func (m Show) checkInDate() time.Time {
 	return date.CombineDateWithTime(m.selectedDate(), time.Now().Local())
 }
 
-func timeline(h *habit.Habit, t time.Time) string {
+func timeline(h *domain.Habit, t time.Time) string {
 	var s strings.Builder
 
 	s.WriteString("\n")

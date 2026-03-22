@@ -2,7 +2,6 @@ package list
 
 import (
 	"astro/config"
-	"astro/habit"
 	"astro/logger"
 	"astro/models/add_to_group"
 	"astro/models/group"
@@ -85,7 +84,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "habit":
 			hab := state.Get(msg.ID)
 			hab.Name = msg.Value
-			if err := habit.Client.Update(hab); err != nil {
+			if err := state.UpdateHabit(hab); err != nil {
 				logger.Error.Printf("failed to update habit: %v", err)
 			}
 			cmds = append(cmds, msgs.UpdateList)
@@ -135,8 +134,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				case key.Matches(msg, m.habitKM.checkIn):
 					selected := m.list.SelectedItem().(listitem.HabitItem).Habit
-					dto := habit.CheckInDTO{ID: selected.ID, Desc: "", Date: time.Now().Local()}
-					hab, err := habit.Client.CheckIn(dto)
+					hab, err := state.CheckIn(selected.ID, "", time.Now().Local())
 					if err != nil {
 						logger.Error.Printf("failed to add activity: %v", err)
 					} else {

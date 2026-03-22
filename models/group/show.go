@@ -3,8 +3,7 @@ package group
 import (
 	"astro/config"
 	"astro/date"
-	"astro/habit"
-	"astro/histogram"
+	"astro/domain"
 	"astro/logger"
 	"astro/models/listitem"
 	"astro/models/show"
@@ -21,7 +20,7 @@ import (
 )
 
 type List struct {
-	group        *habit.Group
+	group        *domain.Group
 	parent       tea.Model
 	list         list.Model
 	km           binds
@@ -31,7 +30,7 @@ type List struct {
 	onHist       bool
 }
 
-func NewShow(g *habit.Group, parent tea.Model) List {
+func NewShow(g *domain.Group, parent tea.Model) List {
 	l := list.New(listitem.HabitsToItems(g.Habits), list.NewDefaultDelegate(), 0, 5)
 	l.SetSize(config.Width, config.Height-9)
 
@@ -52,15 +51,15 @@ func (m List) Init() tea.Cmd {
 func (m List) View() tea.View {
 	activities := m.group.Activities()
 	var s strings.Builder
-	s.WriteString(histogram.Histogram(m.t, activities, m.selected))
+	s.WriteString(domain.Histogram(m.t, activities, m.selected))
 
 	if m.selectedDate().After(date.Today()) {
 		s.WriteString("\n")
 	} else {
-		s.WriteString(habit.ActivitiesOnDateTally(m.group.Habits, m.selectedDate()))
+		s.WriteString(domain.ActivitiesOnDateTally(m.group.Habits, m.selectedDate()))
 	}
 
-	m.list.Title = habit.Digest(m.group.Name, m.group.Activities())
+	m.list.Title = domain.Digest(m.group.Name, m.group.Activities())
 
 	s.WriteString("\n")
 	s.WriteString(m.list.View())
@@ -87,7 +86,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "habit":
 			hab := state.Get(msg.ID)
 			hab.Name = msg.Value
-			if err := habit.Client.Update(hab); err != nil {
+			if err := state.UpdateHabit(hab); err != nil {
 				logger.Error.Printf("failed to update habit: %v", err)
 			}
 			cmds = append(cmds, msgs.UpdateList)
@@ -136,8 +135,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.km.checkIn):
 			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
-			dto := habit.CheckInDTO{ID: selected.ID, Desc: "", Date: time.Now().Local()}
-			hab, err := habit.Client.CheckIn(dto)
+			hab, err := state.CheckIn(selected.ID, "", time.Now().Local())
 			if err != nil {
 				logger.Error.Printf("failed to add activity: %v", err)
 			} else {

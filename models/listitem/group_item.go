@@ -2,15 +2,14 @@ package listitem
 
 import (
 	"astro/config"
-	"astro/habit"
-	"astro/histogram"
+	"astro/domain"
 
 	"charm.land/bubbles/v2/list"
 )
 
 type GroupItem struct {
-	Group      *habit.Group
-	activities []habit.Activity
+	Group      *domain.Group
+	activities []domain.Activity
 }
 
 func (i GroupItem) FilterValue() string { return i.Title() }
@@ -33,7 +32,7 @@ func (i GroupItem) Title() string {
 }
 
 func (i GroupItem) Description() string {
-	return histogram.ShortLineHistogram(i.activities, config.ShortHistSize) + " " + i.lastActivity()
+	return domain.ShortLineHistogram(i.activities, config.ShortHistSize) + " " + i.lastActivity()
 }
 
 func (i GroupItem) lastActivity() string {
@@ -44,11 +43,11 @@ func (i GroupItem) lastActivity() string {
 	return "last activity at " + i.activities[len(i.activities)-1].CreatedAt.Local().Format(config.DateFormat)
 }
 
-func newGroupItem(g *habit.Group) GroupItem {
+func newGroupItem(g *domain.Group) GroupItem {
 	return GroupItem{Group: g, activities: g.Activities()}
 }
 
-func GroupsToItems(groups []*habit.Group) []list.Item {
+func GroupsToItems(groups []*domain.Group) []list.Item {
 	items := make([]list.Item, len(groups))
 	for i, g := range groups {
 		items[i] = newGroupItem(g)
