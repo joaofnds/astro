@@ -17,8 +17,9 @@ const (
 	SelectedGraphic = "⚫"
 )
 
-// Width and Height are set by tea.WindowSizeMsg handlers.
-// They remain package-level vars until Phase 3 restructures state ownership.
+// Deprecated: Width and Height are legacy package-level vars set by
+// tea.WindowSizeMsg handlers. The root model now owns terminal dimensions.
+// TODO(phase3): remove after screen rewiring (Plan 03 passes dimensions via constructors).
 var (
 	Width  int
 	Height int

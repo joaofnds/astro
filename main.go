@@ -2,10 +2,9 @@ package main
 
 import (
 	"astro/api"
+	"astro/app"
 	"astro/config"
 	"astro/logger"
-	"astro/models/list"
-	"astro/state"
 	"astro/token"
 	"log"
 
@@ -30,10 +29,7 @@ func main() {
 	}
 
 	client := api.NewClient(baseURL, tok)
-	state.Init(client)
-	state.GetAll()
-
-	p := tea.NewProgram(list.NewList())
+	p := tea.NewProgram(app.New(client))
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
 	}
