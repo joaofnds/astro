@@ -9,6 +9,7 @@ import (
 	"astro/msgs"
 	"astro/util"
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -27,13 +28,25 @@ var (
 )
 
 type Show struct {
-	client   *api.Client
-	habit    *domain.Habit
-	selected int
-	t        time.Time
-	help     help.Model
-	keys     keymap
-	width    int
+	client        *api.Client
+	habit         *domain.Habit
+	habitSnapshot *domain.Habit // Pre-mutation snapshot for rollback
+	selected      int
+	t             time.Time
+	help          help.Model
+	keys          keymap
+	width         int
+	statusMsg     string
+	cancelOp      context.CancelFunc
+}
+
+// snapshotHabit returns a deep copy of h suitable for rollback.
+// The Activities slice is copied to avoid shared backing arrays.
+func snapshotHabit(h *domain.Habit) *domain.Habit {
+	cp := *h
+	cp.Activities = make([]domain.Activity, len(h.Activities))
+	copy(cp.Activities, h.Activities)
+	return &cp
 }
 
 func NewShow(client *api.Client, habit *domain.Habit, width int) Show {
@@ -68,6 +81,9 @@ func (m Show) View() tea.View {
 	s.WriteString(domain.Histogram(m.t, m.habit.Activities, m.selected))
 	s.WriteString(domain.ActivitiesOnDate(m.habit.Activities, m.selectedDate()))
 	s.WriteString(timeline(m.habit, m.selectedDate()))
+	if m.statusMsg != "" {
+		s.WriteString("\n" + m.statusMsg + "\n")
+	}
 	s.WriteString(m.help.View(m.keys))
 
 	return tea.NewView(style.Render(s.String()))
@@ -75,17 +91,47 @@ func (m Show) View() tea.View {
 
 func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case msgs.APIErrorMsg:
+		errStr := fmt.Sprintf("\u2717 %s: %s", msg.Op, msg.Err)
+		if msg.Op == "check in" && m.habitSnapshot != nil {
+			m.habit = m.habitSnapshot
+			m.habitSnapshot = nil
+			errStr += " \u2014 restored"
+		}
+		m.statusMsg = errStr
+		return m, msgs.ClearStatusAfter(3 * time.Second)
+
+	case msgs.ClearStatusMsg:
+		m.statusMsg = ""
+		return m, nil
+
 	case textinput.Submit:
 		switch msg.Key {
 		case "checkin":
-			return m, msgs.CheckIn(context.Background(), m.client, m.habit.ID, msg.Value, m.checkInDate())
+			m.habitSnapshot = snapshotHabit(m.habit)
+			checkInTime := m.checkInDate()
+			m.habit.Activities = append(m.habit.Activities, domain.Activity{
+				ID:        "pending",
+				Desc:      msg.Value,
+				CreatedAt: checkInTime,
+			})
+			m.statusMsg = "Checking in..."
+			ctx, cancel := context.WithCancel(context.Background())
+			m.cancelOp = cancel
+			return m, msgs.CheckIn(ctx, m.client, m.habit.ID, msg.Value, checkInTime)
 		case "checkin-edit":
-			return m, msgs.UpdateActivity(context.Background(), m.client, m.habit.ID, msg.ID, msg.Value)
+			m.statusMsg = "Updating..."
+			ctx, cancel := context.WithCancel(context.Background())
+			m.cancelOp = cancel
+			return m, msgs.UpdateActivity(ctx, m.client, m.habit.ID, msg.ID, msg.Value)
 		}
 
 	case msgs.CheckInResultMsg:
 		if msg.Habit.ID == m.habit.ID {
 			m.habit = msg.Habit
+			m.habitSnapshot = nil
+			m.statusMsg = "Checked in"
+			return m, msgs.ClearStatusAfter(3 * time.Second)
 		}
 
 	case msgs.ActivityUpdatedMsg:
@@ -95,6 +141,8 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.habit.Activities[i].Desc = msg.Desc
 				}
 			}
+			m.statusMsg = "Updated"
+			return m, msgs.ClearStatusAfter(3 * time.Second)
 		}
 
 	case msgs.ActivityDeletedMsg:
@@ -105,6 +153,8 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					break
 				}
 			}
+			m.statusMsg = "Deleted"
+			return m, msgs.ClearStatusAfter(3 * time.Second)
 		}
 
 	case tea.KeyPressMsg:
@@ -113,7 +163,17 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.selectedDate().After(time.Now()) {
 				break
 			}
-			return m, msgs.CheckIn(context.Background(), m.client, m.habit.ID, "", m.checkInDate())
+			m.habitSnapshot = snapshotHabit(m.habit)
+			checkInTime := m.checkInDate()
+			m.habit.Activities = append(m.habit.Activities, domain.Activity{
+				ID:        "pending",
+				Desc:      "",
+				CreatedAt: checkInTime,
+			})
+			m.statusMsg = "Checking in..."
+			ctx, cancel := context.WithCancel(context.Background())
+			m.cancelOp = cancel
+			return m, msgs.CheckIn(ctx, m.client, m.habit.ID, "", checkInTime)
 
 		case key.Matches(msg, m.keys.VCheckIn):
 			if m.selectedDate().After(time.Now()) {
@@ -131,7 +191,10 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err != nil {
 				break
 			}
-			return m, msgs.DeleteActivity(context.Background(), m.client, m.habit.ID, activity.ID)
+			m.statusMsg = "Deleting activity..."
+			ctx, cancel := context.WithCancel(context.Background())
+			m.cancelOp = cancel
+			return m, msgs.DeleteActivity(ctx, m.client, m.habit.ID, activity.ID)
 
 		// ClearScreen forces a full sequential redraw on navigation.
 		// The v2 renderer's differential updates miscalculate cursor
@@ -156,6 +219,11 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.help.ShowAll = !m.help.ShowAll
 
 		case key.Matches(msg, m.keys.Quit):
+			if m.cancelOp != nil {
+				m.cancelOp()
+				m.cancelOp = nil
+			}
+			m.habitSnapshot = nil
 			return m, msgs.PopScreen()
 		}
 	}

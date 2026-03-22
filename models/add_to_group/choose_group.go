@@ -62,10 +62,13 @@ func (m ChooseGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, msgs.PopScreen()
 
 		case msg.String() == "enter":
-			group := m.list.SelectedItem().(item).group
+			sel, ok := m.list.SelectedItem().(item)
+			if !ok {
+				break
+			}
 			return m, func() tea.Msg {
 				return msgs.PopScreenMsg{
-					Cmd: msgs.AddToGroup(context.Background(), m.client, m.habit.ID, group.ID),
+					Cmd: msgs.AddToGroup(context.Background(), m.client, m.habit.ID, sel.group.ID),
 				}
 			}
 		}
