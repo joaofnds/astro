@@ -327,6 +327,13 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case m.list.SettingFilter():
 			break
 
+		case msg.String() == "esc":
+			if m.cancelOp != nil {
+				m.cancelOp()
+				m.cancelOp = nil
+				return m, m.list.NewStatusMessage("Cancelled")
+			}
+
 		case key.Matches(msg, m.habitKM.add):
 			return m, msgs.PushScreen(newAddInput())
 
