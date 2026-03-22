@@ -7,25 +7,28 @@ import (
 	"astro/msgs"
 	"context"
 
+	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
 )
 
 // App is the root model. It owns all application state, the API client,
 // the screen stack, and terminal dimensions.
 type App struct {
-	state  AppState
-	client *api.Client
-	stack  []tea.Model
-	width  int
-	height int
-	ready  bool
+	state   AppState
+	client  *api.Client
+	stack   []tea.Model
+	spinner spinner.Model
+	width   int
+	height  int
+	ready   bool
 }
 
 // New creates a root model that starts in the loading state.
 func New(client *api.Client) App {
 	return App{
-		state:  NewAppState(),
-		client: client,
+		state:   NewAppState(),
+		client:  client,
+		spinner: spinner.New(spinner.WithSpinner(spinner.Dot)),
 	}
 }
 
@@ -44,10 +47,10 @@ func (a *App) SetStateForTest(habits []*domain.Habit, groups []*domain.Group) {
 	a.state.SetAll(habits, groups)
 }
 
-// Init kicks off the asynchronous initial data load. The app shows a
-// loading view until DataLoadedMsg arrives.
+// Init kicks off the asynchronous initial data load and starts the loading
+// spinner. The app shows an animated loading view until DataLoadedMsg arrives.
 func (a App) Init() tea.Cmd {
-	return msgs.LoadAll(context.Background(), a.client)
+	return tea.Batch(msgs.LoadAll(context.Background(), a.client), a.spinner.Tick)
 }
 
 func (a App) activeScreen() tea.Model {
@@ -133,6 +136,13 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		msgs.ActivityDeletedMsg,
 		msgs.APIErrorMsg:
 		// Fall through to forward to active screen.
+
+	case spinner.TickMsg:
+		if !a.ready {
+			var cmd tea.Cmd
+			a.spinner, cmd = a.spinner.Update(msg)
+			return a, cmd
+		}
 	}
 
 	// Forward to active screen.
@@ -148,7 +158,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // delegates to the active screen.
 func (a App) View() tea.View {
 	if !a.ready {
-		v := tea.NewView("Loading...")
+		v := tea.NewView(a.spinner.View() + " Loading habits...")
 		v.AltScreen = true
 		return v
 	}

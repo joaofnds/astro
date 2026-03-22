@@ -6,6 +6,7 @@ import (
 	"astro/domain"
 	"astro/msgs"
 	"errors"
+	"strings"
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
@@ -36,10 +37,10 @@ func TestNew(t *testing.T) {
 	client := api.NewClient("http://localhost", "token")
 	a := app.New(client)
 
-	// New returns App with ready=false; View should show loading.
+	// New returns App with ready=false; View should show spinner + loading text.
 	v := a.View()
-	if v.Content != "Loading..." {
-		t.Fatalf("expected loading view, got %q", v.Content)
+	if !strings.Contains(v.Content, "Loading habits...") {
+		t.Fatalf("expected loading view with spinner, got %q", v.Content)
 	}
 }
 
@@ -145,9 +146,9 @@ func TestDataLoadedMsg(t *testing.T) {
 	updated, _ := a.Update(msgs.DataLoadedMsg{Habits: habits, Groups: groups})
 	a = updated.(app.App)
 
-	// After DataLoadedMsg, ready should be true (view should not show "Loading...").
+	// After DataLoadedMsg, ready should be true (view should not show loading).
 	v := a.View()
-	if v.Content == "Loading..." {
+	if strings.Contains(v.Content, "Loading habits...") {
 		t.Fatal("expected ready view after DataLoadedMsg, still showing loading")
 	}
 }
@@ -229,8 +230,8 @@ func TestViewWhenNotReady(t *testing.T) {
 	a := app.New(client)
 
 	v := a.View()
-	if v.Content != "Loading..." {
-		t.Fatalf("expected 'Loading...', got %q", v.Content)
+	if !strings.Contains(v.Content, "Loading habits...") {
+		t.Fatalf("expected spinner + 'Loading habits...', got %q", v.Content)
 	}
 	if !v.AltScreen {
 		t.Fatal("expected AltScreen=true for loading view")

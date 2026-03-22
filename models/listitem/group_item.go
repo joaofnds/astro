@@ -43,6 +43,16 @@ func (i GroupItem) lastActivity() string {
 	return "last activity at " + i.activities[len(i.activities)-1].CreatedAt.Local().Format(config.DateFormat)
 }
 
+// PendingGroupItem is a placeholder shown during optimistic group create.
+// It renders with dimmed/italic styling until the API confirms creation.
+type PendingGroupItem struct {
+	Name string
+}
+
+func (i PendingGroupItem) Title() string       { return pendingStyle.Render(i.Name) }
+func (i PendingGroupItem) Description() string { return pendingStyle.Render("creating...") }
+func (i PendingGroupItem) FilterValue() string { return i.Name }
+
 func newGroupItem(g *domain.Group) GroupItem {
 	return GroupItem{Group: g, activities: g.Activities()}
 }

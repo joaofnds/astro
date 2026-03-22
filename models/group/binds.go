@@ -63,3 +63,17 @@ func newBinds() binds {
 func (k binds) ToSlice() []key.Binding {
 	return []key.Binding{k.view, k.rename, k.delete, k.tab, k.quit}
 }
+
+// ShortHelp implements help.KeyMap.
+func (k binds) ShortHelp() []key.Binding {
+	return []key.Binding{k.view, k.checkIn, k.rename, k.delete, k.tab, k.quit}
+}
+
+// FullHelp implements help.KeyMap.
+func (k binds) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.up, k.down, k.left, k.right},
+		{k.checkIn, k.rename, k.delete, k.view},
+		{k.tab, k.quit},
+	}
+}
