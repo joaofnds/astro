@@ -17,28 +17,36 @@ const (
 	SelectedGraphic = "⚫"
 )
 
+// Width and Height are set by tea.WindowSizeMsg handlers.
+// They remain package-level vars until Phase 3 restructures state ownership.
 var (
 	Width  int
 	Height int
+)
 
+// Config holds file paths resolved from the user's home directory.
+type Config struct {
 	ConfigDirPath string
 	LogFilePath   string
 	TokenFilePath string
-)
+}
 
-func Init() error {
+// Load reads the user's home directory, ensures the config directory exists,
+// and returns a Config with all paths set.
+func Load() (*Config, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return fmt.Errorf("could not get user home dir: %w", err)
+		return nil, fmt.Errorf("could not get user home dir: %w", err)
 	}
 
-	ConfigDirPath = path.Join(home, ".config", "astro")
-	if err := os.MkdirAll(ConfigDirPath, 0755); err != nil {
-		return fmt.Errorf("could not create dir %q: %w", ConfigDirPath, err)
+	configDir := path.Join(home, ".config", "astro")
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return nil, fmt.Errorf("could not create dir %q: %w", configDir, err)
 	}
 
-	LogFilePath = path.Join(ConfigDirPath, "log.log")
-	TokenFilePath = path.Join(ConfigDirPath, "token")
-
-	return nil
+	return &Config{
+		ConfigDirPath: configDir,
+		LogFilePath:   path.Join(configDir, "log.log"),
+		TokenFilePath: path.Join(configDir, "token"),
+	}, nil
 }

@@ -1,34 +1,35 @@
 package token
 
 import (
-	"astro/config"
-	"astro/habit"
+	"astro/api"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 )
 
-func Init() (string, error) {
-	if err := ensureTokenExists(); err != nil {
-		return "", fmt.Errorf("could no create token: %w", err)
+// Init reads the token from disk, creating one via the API if it does not exist.
+func Init(tokenFilePath, apiBaseURL string) (string, error) {
+	if err := ensureTokenExists(tokenFilePath, apiBaseURL); err != nil {
+		return "", fmt.Errorf("could not create token: %w", err)
 	}
 
-	f, err := os.Open(config.TokenFilePath)
+	f, err := os.Open(tokenFilePath)
 	if err != nil {
 		return "", fmt.Errorf("could not open token file: %w", err)
 	}
+	defer f.Close()
 
 	token, err := io.ReadAll(f)
 	if err != nil {
-		return "", fmt.Errorf("could not read token file(%q): %w", config.TokenFilePath, err)
+		return "", fmt.Errorf("could not read token file(%q): %w", tokenFilePath, err)
 	}
 
 	return string(token), nil
 }
 
-func ensureTokenExists() error {
-	_, err := os.Stat(config.TokenFilePath)
+func ensureTokenExists(tokenFilePath, apiBaseURL string) error {
+	_, err := os.Stat(tokenFilePath)
 	if err == nil {
 		return nil
 	}
@@ -37,18 +38,12 @@ func ensureTokenExists() error {
 		return fmt.Errorf("could not stat token file: %w", err)
 	}
 
-	res, err := habit.NewAPI().CreateToken()
+	tok, err := api.CreateToken(apiBaseURL)
 	if err != nil {
 		return fmt.Errorf("could not create token: %w", err)
 	}
-	defer res.Body.Close()
 
-	b, err := io.ReadAll(res.Body)
-	if err != nil {
-		return fmt.Errorf("could not read response body: %w", err)
-	}
-
-	if err = os.WriteFile(config.TokenFilePath, b, 0644); err != nil {
+	if err = os.WriteFile(tokenFilePath, []byte(tok), 0644); err != nil {
 		return fmt.Errorf("could not write token file: %w", err)
 	}
 

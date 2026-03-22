@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"astro/config"
 	"fmt"
 	"log"
 	"os"
@@ -14,8 +13,8 @@ var (
 	flags = log.Ldate | log.Ltime | log.Lshortfile | log.Lmsgprefix
 )
 
-func Init() error {
-	f, err := os.OpenFile(config.LogFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+func Init(logFilePath string) error {
+	f, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to open log file: %w", err)
 	}

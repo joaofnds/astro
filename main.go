@@ -1,8 +1,8 @@
 package main
 
 import (
+	"astro/api"
 	"astro/config"
-	"astro/habit"
 	"astro/logger"
 	"astro/models/list"
 	"astro/state"
@@ -13,21 +13,26 @@ import (
 )
 
 func main() {
-	if err := config.Init(); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := logger.Init(); err != nil {
-		log.Fatal(err)
-	}
-
-	tok, err := token.Init()
+	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	habit.InitClient(tok)
+	if err := logger.Init(cfg.LogFilePath); err != nil {
+		log.Fatal(err)
+	}
+
+	const baseURL = "https://astro.joaofnds.com"
+
+	tok, err := token.Init(cfg.TokenFilePath, baseURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client := api.NewClient(baseURL, tok)
+	state.Init(client)
 	state.GetAll()
+
 	p := tea.NewProgram(list.NewList())
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)

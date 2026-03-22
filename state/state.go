@@ -1,32 +1,40 @@
 package state
 
 import (
-	"astro/habit"
+	"astro/api"
+	"astro/domain"
 	"log"
+	"time"
 )
 
 var (
-	groups []*habit.Group
-	habits []*habit.Habit
+	client *api.Client
+	groups []*domain.Group
+	habits []*domain.Habit
 )
+
+// Init sets the API client for all state operations.
+func Init(c *api.Client) {
+	client = c
+}
 
 func GetAll() {
 	var err error
-	groups, habits, err = habit.Client.GroupsAndHabits()
+	groups, habits, err = client.GroupsAndHabits()
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func Habits() []*habit.Habit {
+func Habits() []*domain.Habit {
 	return habits
 }
 
-func Groups() []*habit.Group {
+func Groups() []*domain.Group {
 	return groups
 }
 
-func At(i int) *habit.Habit {
+func At(i int) *domain.Habit {
 	return habits[i]
 }
 
@@ -39,7 +47,7 @@ func IndexOf(id string) int {
 	return -1
 }
 
-func Get(id string) *habit.Habit {
+func Get(id string) *domain.Habit {
 	for _, h := range habits {
 		if h.ID == id {
 			return h
@@ -55,7 +63,7 @@ func Get(id string) *habit.Habit {
 	return nil
 }
 
-func SetHabit(h *habit.Habit) {
+func SetHabit(h *domain.Habit) {
 	for i := range habits {
 		if habits[i].ID == h.ID {
 			*habits[i] = *h
@@ -70,7 +78,7 @@ func SetHabit(h *habit.Habit) {
 	}
 }
 
-func UpdateActivity(h *habit.Habit, activity *habit.Activity) {
+func UpdateActivity(h *domain.Habit, activity *domain.Activity) {
 	for i, a := range h.Activities {
 		if a.ID == activity.ID {
 			h.Activities[i] = *activity
@@ -78,7 +86,7 @@ func UpdateActivity(h *habit.Habit, activity *habit.Activity) {
 	}
 }
 
-func DeleteActivity(h *habit.Habit, activity habit.Activity) {
+func DeleteActivity(h *domain.Habit, activity domain.Activity) {
 	for i, a := range h.Activities {
 		if a.ID == activity.ID {
 			h.Activities = append(h.Activities[:i], h.Activities[i+1:]...)
@@ -86,8 +94,8 @@ func DeleteActivity(h *habit.Habit, activity habit.Activity) {
 	}
 }
 
-func Add(name string) *habit.Habit {
-	h, err := habit.Client.Create(name)
+func Add(name string) *domain.Habit {
+	h, err := client.CreateHabit(name)
 	if err != nil {
 		log.Fatalf("could not create habit: %s", err)
 	}
@@ -95,17 +103,17 @@ func Add(name string) *habit.Habit {
 	return Get(h.ID)
 }
 
-func AddGroup(name string) *habit.Habit {
-	h, err := habit.Client.CreateGroup(name)
+func AddGroup(name string) *domain.Habit {
+	g, err := client.CreateGroup(name)
 	if err != nil {
 		log.Fatalf("could not create group: %s", err)
 	}
 	GetAll()
-	return Get(h.ID)
+	return Get(g.ID)
 }
 
-func DeleteGroup(group habit.Group) error {
-	err := habit.Client.DeleteGroup(group)
+func DeleteGroup(group domain.Group) error {
+	err := client.DeleteGroup(group.ID)
 	if err != nil {
 		log.Fatalf("could not delete group: %s", err)
 	}
@@ -113,17 +121,17 @@ func DeleteGroup(group habit.Group) error {
 	return nil
 }
 
-func AddToGroup(h habit.Habit, g habit.Group) {
-	err := habit.Client.AddToGroup(h, g)
+func AddToGroup(h domain.Habit, g domain.Group) {
+	err := client.AddToGroup(h.ID, g.ID)
 	if err != nil {
-		log.Fatalf("could not create group: %s", err)
+		log.Fatalf("could not add to group: %s", err)
 	}
 	GetAll()
 }
 
-func RemoveFromGroup(h habit.Habit, g habit.Group) {
-	if err := habit.Client.RemoveFromGroup(h, g); err != nil {
-		log.Fatalf("could not remove habti from group: %s", err)
+func RemoveFromGroup(h domain.Habit, g domain.Group) {
+	if err := client.RemoveFromGroup(h.ID, g.ID); err != nil {
+		log.Fatalf("could not remove habit from group: %s", err)
 	}
 	GetAll()
 }
@@ -134,10 +142,26 @@ func Delete(id string) error {
 		return nil
 	}
 
-	if err := habit.Client.Delete(id); err != nil {
+	if err := client.DeleteHabit(id); err != nil {
 		return err
 	}
 
 	habits = append(habits[:i], habits[i+1:]...)
 	return nil
+}
+
+func CheckIn(id, desc string, date time.Time) (*domain.Habit, error) {
+	return client.CheckIn(api.CheckInDTO{ID: id, Desc: desc, Date: date})
+}
+
+func UpdateHabit(h *domain.Habit) error {
+	return client.UpdateHabit(h.ID, h.Name)
+}
+
+func UpdateHabitActivity(habitID, activityID, desc string) error {
+	return client.UpdateActivity(habitID, activityID, desc)
+}
+
+func DeleteHabitActivity(habitID, activityID string) error {
+	return client.DeleteActivity(habitID, activityID)
 }
