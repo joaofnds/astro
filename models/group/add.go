@@ -1,9 +1,7 @@
 package group
 
 import (
-	"astro/api"
 	"astro/msgs"
-	"context"
 	"strings"
 
 	"charm.land/bubbles/v2/textinput"
@@ -15,19 +13,18 @@ type (
 )
 
 type model struct {
-	client *api.Client
-	input  textinput.Model
-	err    error
+	input textinput.Model
+	err   error
 }
 
-func NewAddGroup(client *api.Client) model {
+func NewAddGroup() model {
 	input := textinput.New()
 	input.Placeholder = "Health"
 	input.Focus()
 	input.CharLimit = 50
 	input.SetWidth(20)
 
-	return model{client: client, input: input, err: nil}
+	return model{input: input, err: nil}
 }
 
 func (m model) Init() tea.Cmd {
@@ -49,7 +46,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, func() tea.Msg {
 				return msgs.PopScreenMsg{
-					Cmd: msgs.CreateGroup(context.Background(), m.client, trimmed),
+					Cmd: func() tea.Msg {
+						return CreateGroupSubmit{Name: trimmed}
+					},
 				}
 			}
 		}

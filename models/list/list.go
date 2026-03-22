@@ -138,7 +138,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, msgs.PushScreen(newAddInput(m.client))
 
 		case key.Matches(msg, m.habitKM.addGroup):
-			return m, msgs.PushScreen(group.NewAddGroup(m.client))
+			return m, msgs.PushScreen(group.NewAddGroup())
 
 		case len(m.list.VisibleItems()) == 0:
 			break
