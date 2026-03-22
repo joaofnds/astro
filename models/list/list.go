@@ -36,7 +36,7 @@ func NewList(client *api.Client, habits []*domain.Habit, groups []*domain.Group,
 	items = append(items, habitItems...)
 	items = append(items, groupItems...)
 
-	l := list.New(items, list.NewDefaultDelegate(), 0, 5)
+	l := list.New(items, list.NewDefaultDelegate(), width, height)
 	l.Title = "Habits"
 	l.SetShowHelp(false)
 	return List{
