@@ -328,7 +328,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 
 		case key.Matches(msg, m.habitKM.add):
-			return m, msgs.PushScreen(newAddInput(m.client))
+			return m, msgs.PushScreen(newAddInput())
 
 		case key.Matches(msg, m.habitKM.addGroup):
 			return m, msgs.PushScreen(group.NewAddGroup())

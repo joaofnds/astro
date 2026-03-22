@@ -1,9 +1,7 @@
 package list
 
 import (
-	"astro/api"
 	"astro/msgs"
-	"context"
 	"strings"
 
 	"charm.land/bubbles/v2/textinput"
@@ -14,27 +12,26 @@ type (
 	errMsg error
 )
 
-type model struct {
-	client *api.Client
-	input  textinput.Model
-	err    error
+type addModel struct {
+	input textinput.Model
+	err   error
 }
 
-func newAddInput(client *api.Client) model {
+func newAddInput() addModel {
 	input := textinput.New()
 	input.Placeholder = "Read"
 	input.Focus()
 	input.CharLimit = 50
 	input.SetWidth(20)
 
-	return model{client: client, input: input, err: nil}
+	return addModel{input: input}
 }
 
-func (m model) Init() tea.Cmd {
+func (m addModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m addModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -49,7 +46,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, func() tea.Msg {
 				return msgs.PopScreenMsg{
-					Cmd: msgs.CreateHabit(context.Background(), m.client, trimmed),
+					Cmd: func() tea.Msg {
+						return createHabitSubmit{Name: trimmed}
+					},
 				}
 			}
 		}
@@ -63,6 +62,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m model) View() tea.View {
+func (m addModel) View() tea.View {
 	return tea.NewView("What is the name of your new habit?\n" + m.input.View() + "\n\n(esc to quit)")
 }
