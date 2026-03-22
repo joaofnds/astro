@@ -4,6 +4,7 @@ import (
 	"astro/api"
 	"astro/domain"
 	"astro/msgs"
+	"context"
 
 	"charm.land/bubbles/v2/list"
 	tea "charm.land/bubbletea/v2"
@@ -64,7 +65,7 @@ func (m ChooseGroup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			group := m.list.SelectedItem().(item).group
 			return m, func() tea.Msg {
 				return msgs.PopScreenMsg{
-					Cmd: msgs.AddToGroup(m.client, m.habit.ID, group.ID),
+					Cmd: msgs.AddToGroup(context.Background(), m.client, m.habit.ID, group.ID),
 				}
 			}
 		}

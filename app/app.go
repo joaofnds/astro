@@ -5,6 +5,7 @@ import (
 	"astro/domain"
 	"astro/models/list"
 	"astro/msgs"
+	"context"
 
 	tea "charm.land/bubbletea/v2"
 )
@@ -46,7 +47,7 @@ func (a *App) SetStateForTest(habits []*domain.Habit, groups []*domain.Group) {
 // Init kicks off the asynchronous initial data load. The app shows a
 // loading view until DataLoadedMsg arrives.
 func (a App) Init() tea.Cmd {
-	return msgs.LoadAll(a.client)
+	return msgs.LoadAll(context.Background(), a.client)
 }
 
 func (a App) activeScreen() tea.Model {

@@ -4,6 +4,7 @@ import (
 	"astro/api"
 	"astro/domain"
 	"astro/msgs"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -88,7 +89,7 @@ func TestLoadAll_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.LoadAll(client)
+	cmd := msgs.LoadAll(context.Background(), client)
 	msg := cmd()
 
 	loaded, ok := msg.(msgs.DataLoadedMsg)
@@ -111,7 +112,7 @@ func TestLoadAll_Error(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.LoadAll(client)
+	cmd := msgs.LoadAll(context.Background(), client)
 	msg := cmd()
 
 	fatal, ok := msg.(msgs.FatalErrorMsg)
@@ -134,7 +135,7 @@ func TestCreateHabit_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.CreateHabit(client, "New Habit")
+	cmd := msgs.CreateHabit(context.Background(), client,"New Habit")
 	msg := cmd()
 
 	created, ok := msg.(msgs.HabitCreatedMsg)
@@ -154,7 +155,7 @@ func TestCreateHabit_Error(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.CreateHabit(client, "fail")
+	cmd := msgs.CreateHabit(context.Background(), client,"fail")
 	msg := cmd()
 
 	apiErr, ok := msg.(msgs.APIErrorMsg)
@@ -177,7 +178,7 @@ func TestDeleteHabit_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.DeleteHabit(client, "h1")
+	cmd := msgs.DeleteHabit(context.Background(), client,"h1")
 	msg := cmd()
 
 	deleted, ok := msg.(msgs.HabitDeletedMsg)
@@ -203,7 +204,7 @@ func TestUpdateHabit_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.UpdateHabit(client, "h1", "Updated")
+	cmd := msgs.UpdateHabit(context.Background(), client,"h1", "Updated")
 	msg := cmd()
 
 	updated, ok := msg.(msgs.HabitUpdatedMsg)
@@ -230,7 +231,7 @@ func TestCheckIn_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.CheckIn(client, "h1", "done", now)
+	cmd := msgs.CheckIn(context.Background(), client,"h1", "done", now)
 	msg := cmd()
 
 	result, ok := msg.(msgs.CheckInResultMsg)
@@ -253,7 +254,7 @@ func TestCreateGroup_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.CreateGroup(client, "New Group")
+	cmd := msgs.CreateGroup(context.Background(), client,"New Group")
 	msg := cmd()
 
 	created, ok := msg.(msgs.GroupCreatedMsg)
@@ -276,7 +277,7 @@ func TestDeleteGroup_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.DeleteGroup(client, "g1")
+	cmd := msgs.DeleteGroup(context.Background(), client,"g1")
 	msg := cmd()
 
 	deleted, ok := msg.(msgs.GroupDeletedMsg)
@@ -299,7 +300,7 @@ func TestAddToGroup_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.AddToGroup(client, "h1", "g1")
+	cmd := msgs.AddToGroup(context.Background(), client,"h1", "g1")
 	msg := cmd()
 
 	added, ok := msg.(msgs.AddedToGroupMsg)
@@ -322,7 +323,7 @@ func TestRemoveFromGroup_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.RemoveFromGroup(client, "h1", "g1")
+	cmd := msgs.RemoveFromGroup(context.Background(), client,"h1", "g1")
 	msg := cmd()
 
 	removed, ok := msg.(msgs.RemovedFromGroupMsg)
@@ -345,7 +346,7 @@ func TestUpdateActivity_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.UpdateActivity(client, "h1", "a1", "updated desc")
+	cmd := msgs.UpdateActivity(context.Background(), client,"h1", "a1", "updated desc")
 	msg := cmd()
 
 	updated, ok := msg.(msgs.ActivityUpdatedMsg)
@@ -368,7 +369,7 @@ func TestDeleteActivity_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.DeleteActivity(client, "h1", "a1")
+	cmd := msgs.DeleteActivity(context.Background(), client,"h1", "a1")
 	msg := cmd()
 
 	deleted, ok := msg.(msgs.ActivityDeletedMsg)

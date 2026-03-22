@@ -107,9 +107,12 @@ type ActivityDeletedMsg struct {
 
 // APIErrorMsg is a recoverable error shown as a status message.
 // The Op field describes the operation that failed (e.g., "create habit").
+// The ID field carries the entity ID for correlating with pending operations
+// during rollback.
 type APIErrorMsg struct {
 	Err error
 	Op  string
+	ID  string
 }
 
 // FatalErrorMsg causes the application to quit with an error message.

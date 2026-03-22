@@ -9,6 +9,7 @@ import (
 	"astro/models/show"
 	"astro/models/textinput"
 	"astro/msgs"
+	"context"
 	"strings"
 	"time"
 
@@ -125,7 +126,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case textinput.Submit:
 		switch msg.Key {
 		case "habit":
-			return m, msgs.UpdateHabit(m.client, msg.ID, msg.Value)
+			return m, msgs.UpdateHabit(context.Background(), m.client, msg.ID, msg.Value)
 		}
 
 	case tea.KeyPressMsg:
@@ -164,12 +165,12 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 					}
 					return m, tea.Batch(
-						msgs.DeleteHabit(m.client, selected.ID),
+						msgs.DeleteHabit(context.Background(), m.client, selected.ID),
 						m.list.NewStatusMessage("Removed "+selected.Name),
 					)
 
 				case key.Matches(msg, m.habitKM.checkIn):
-					return m, msgs.CheckIn(m.client, selected.ID, "", time.Now().Local())
+					return m, msgs.CheckIn(context.Background(), m.client, selected.ID, "", time.Now().Local())
 				}
 
 			case listitem.GroupItem:
@@ -179,7 +180,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, msgs.PushScreen(group.NewShow(m.client, selected, m.width, m.height))
 
 				case key.Matches(msg, m.groupKM.delete):
-					return m, msgs.DeleteGroup(m.client, selected.ID)
+					return m, msgs.DeleteGroup(context.Background(), m.client, selected.ID)
 				}
 			}
 		}

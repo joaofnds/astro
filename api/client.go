@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -50,10 +51,10 @@ func NewClient(baseURL, token string, opts ...Option) *Client {
 
 // doRequest executes an HTTP request, validates the status code,
 // and optionally decodes the JSON response into result.
-func (c *Client) doRequest(method, path string, body io.Reader, result any) error {
+func (c *Client) doRequest(ctx context.Context, method, path string, body io.Reader, result any) error {
 	url := c.baseURL + path
 
-	req, err := http.NewRequest(method, url, body)
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		return fmt.Errorf("api: creating request: %w", err)
 	}

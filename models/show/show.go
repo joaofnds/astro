@@ -8,6 +8,7 @@ import (
 	"astro/models/textinput"
 	"astro/msgs"
 	"astro/util"
+	"context"
 	"strings"
 	"time"
 
@@ -77,9 +78,9 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case textinput.Submit:
 		switch msg.Key {
 		case "checkin":
-			return m, msgs.CheckIn(m.client, m.habit.ID, msg.Value, m.checkInDate())
+			return m, msgs.CheckIn(context.Background(), m.client, m.habit.ID, msg.Value, m.checkInDate())
 		case "checkin-edit":
-			return m, msgs.UpdateActivity(m.client, m.habit.ID, msg.ID, msg.Value)
+			return m, msgs.UpdateActivity(context.Background(), m.client, m.habit.ID, msg.ID, msg.Value)
 		}
 
 	case msgs.CheckInResultMsg:
@@ -112,7 +113,7 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.selectedDate().After(time.Now()) {
 				break
 			}
-			return m, msgs.CheckIn(m.client, m.habit.ID, "", m.checkInDate())
+			return m, msgs.CheckIn(context.Background(), m.client, m.habit.ID, "", m.checkInDate())
 
 		case key.Matches(msg, m.keys.VCheckIn):
 			if m.selectedDate().After(time.Now()) {
@@ -130,7 +131,7 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err != nil {
 				break
 			}
-			return m, msgs.DeleteActivity(m.client, m.habit.ID, activity.ID)
+			return m, msgs.DeleteActivity(context.Background(), m.client, m.habit.ID, activity.ID)
 
 		// ClearScreen forces a full sequential redraw on navigation.
 		// The v2 renderer's differential updates miscalculate cursor

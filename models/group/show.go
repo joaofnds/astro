@@ -10,6 +10,7 @@ import (
 	"astro/models/textinput"
 	"astro/msgs"
 	"astro/util"
+	"context"
 	"strings"
 	"time"
 
@@ -105,7 +106,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case textinput.Submit:
 		switch msg.Key {
 		case "habit":
-			return m, msgs.UpdateHabit(m.client, msg.ID, msg.Value)
+			return m, msgs.UpdateHabit(context.Background(), m.client, msg.ID, msg.Value)
 		}
 
 	case tea.KeyPressMsg:
@@ -151,7 +152,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.km.checkIn):
 			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
-			return m, msgs.CheckIn(m.client, selected.ID, "", time.Now().Local())
+			return m, msgs.CheckIn(context.Background(), m.client, selected.ID, "", time.Now().Local())
 
 		case key.Matches(msg, m.km.view):
 			selected := m.list.SelectedItem().(listitem.HabitItem).Habit
@@ -170,7 +171,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			return m, tea.Batch(
-				msgs.RemoveFromGroup(m.client, selected.ID, m.group.ID),
+				msgs.RemoveFromGroup(context.Background(), m.client, selected.ID, m.group.ID),
 				m.list.NewStatusMessage("Removed "+selected.Name),
 			)
 		}

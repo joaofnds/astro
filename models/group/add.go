@@ -3,6 +3,7 @@ package group
 import (
 	"astro/api"
 	"astro/msgs"
+	"context"
 	"strings"
 
 	"charm.land/bubbles/v2/textinput"
@@ -48,7 +49,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, func() tea.Msg {
 				return msgs.PopScreenMsg{
-					Cmd: msgs.CreateGroup(m.client, trimmed),
+					Cmd: msgs.CreateGroup(context.Background(), m.client, trimmed),
 				}
 			}
 		}

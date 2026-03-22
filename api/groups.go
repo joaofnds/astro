@@ -2,6 +2,7 @@ package api
 
 import (
 	"astro/domain"
+	"context"
 	"fmt"
 	"strings"
 )
@@ -12,9 +13,9 @@ type GroupsAndHabitsPayload struct {
 	Habits []*domain.Habit `json:"habits"`
 }
 
-func (c *Client) GroupsAndHabits() ([]*domain.Group, []*domain.Habit, error) {
+func (c *Client) GroupsAndHabits(ctx context.Context) ([]*domain.Group, []*domain.Habit, error) {
 	var data GroupsAndHabitsPayload
-	if err := c.doRequest("GET", "/groups", nil, &data); err != nil {
+	if err := c.doRequest(ctx, "GET", "/groups", nil, &data); err != nil {
 		return nil, nil, err
 	}
 	domain.SortHabits(data.Habits)
@@ -22,23 +23,23 @@ func (c *Client) GroupsAndHabits() ([]*domain.Group, []*domain.Habit, error) {
 	return data.Groups, data.Habits, nil
 }
 
-func (c *Client) CreateGroup(name string) (*domain.Group, error) {
+func (c *Client) CreateGroup(ctx context.Context, name string) (*domain.Group, error) {
 	body := fmt.Sprintf(`{"name":%q}`, name)
 	var group domain.Group
-	if err := c.doRequest("POST", "/groups", strings.NewReader(body), &group); err != nil {
+	if err := c.doRequest(ctx, "POST", "/groups", strings.NewReader(body), &group); err != nil {
 		return nil, err
 	}
 	return &group, nil
 }
 
-func (c *Client) AddToGroup(habitID, groupID string) error {
-	return c.doRequest("POST", "/groups/"+groupID+"/"+habitID, nil, nil)
+func (c *Client) AddToGroup(ctx context.Context, habitID, groupID string) error {
+	return c.doRequest(ctx, "POST", "/groups/"+groupID+"/"+habitID, nil, nil)
 }
 
-func (c *Client) RemoveFromGroup(habitID, groupID string) error {
-	return c.doRequest("DELETE", "/groups/"+groupID+"/"+habitID, nil, nil)
+func (c *Client) RemoveFromGroup(ctx context.Context, habitID, groupID string) error {
+	return c.doRequest(ctx, "DELETE", "/groups/"+groupID+"/"+habitID, nil, nil)
 }
 
-func (c *Client) DeleteGroup(groupID string) error {
-	return c.doRequest("DELETE", "/groups/"+groupID, nil, nil)
+func (c *Client) DeleteGroup(ctx context.Context, groupID string) error {
+	return c.doRequest(ctx, "DELETE", "/groups/"+groupID, nil, nil)
 }
