@@ -261,6 +261,156 @@ func TestCtrlC_Quits(t *testing.T) {
 	}
 }
 
+// --- Navigation flow tests (TEST-06) ---
+
+func TestDeepNavigation(t *testing.T) {
+	screen1 := newMockScreen(nil)
+	a := appWithScreen(screen1)
+
+	// Push screen2 and screen3.
+	screen2 := newMockScreen(nil)
+	updated, _ := a.Update(msgs.PushScreenMsg{Screen: screen2})
+	a = updated.(app.App)
+
+	screen3 := newMockScreen(nil)
+	updated, _ = a.Update(msgs.PushScreenMsg{Screen: screen3})
+	a = updated.(app.App)
+
+	// Pop screen3 -- screen2 should receive subsequent messages.
+	updated, _ = a.Update(msgs.PopScreenMsg{})
+	a = updated.(app.App)
+	testMsg := tea.WindowSizeMsg{Width: 1, Height: 1}
+	a.Update(testMsg)
+	if screen2.lastMsg == nil {
+		t.Fatal("after popping screen3, screen2 should be active and receive messages")
+	}
+
+	// Pop screen2 -- screen1 should receive subsequent messages.
+	updated, _ = a.Update(msgs.PopScreenMsg{})
+	a = updated.(app.App)
+	screen1.lastMsg = nil
+	a.Update(testMsg)
+	if screen1.lastMsg == nil {
+		t.Fatal("after popping screen2, screen1 should be active and receive messages")
+	}
+
+	// Pop screen1 -- should quit.
+	_, cmd := a.Update(msgs.PopScreenMsg{})
+	if cmd == nil {
+		t.Fatal("expected tea.Quit when popping last screen")
+	}
+	msg := cmd()
+	if _, ok := msg.(tea.QuitMsg); !ok {
+		t.Fatalf("expected QuitMsg on final pop, got %T", msg)
+	}
+}
+
+func TestDataLoadedMsg_TransitionsToListScreen(t *testing.T) {
+	client := api.NewClient("http://localhost", "token")
+	a := app.New(client)
+
+	// Confirm loading state.
+	v := a.View()
+	if !strings.Contains(v.Content, "Loading habits...") {
+		t.Fatal("expected loading view before DataLoadedMsg")
+	}
+
+	habits := []*domain.Habit{{ID: "h1", Name: "Running"}}
+	groups := []*domain.Group{{ID: "g1", Name: "Fitness"}}
+
+	updated, _ := a.Update(msgs.DataLoadedMsg{Habits: habits, Groups: groups})
+	a = updated.(app.App)
+
+	// After DataLoadedMsg, should no longer show loading.
+	v = a.View()
+	if strings.Contains(v.Content, "Loading habits...") {
+		t.Fatal("expected transition away from loading after DataLoadedMsg")
+	}
+
+	// View should reflect the list screen content (not loading spinner).
+	if v.Content == "" {
+		t.Fatal("expected non-empty view after DataLoadedMsg transition")
+	}
+}
+
+func TestStateMessages_ForwardToScreen(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  tea.Msg
+	}{
+		{"GroupCreatedMsg", msgs.GroupCreatedMsg{Group: &domain.Group{ID: "g2", Name: "New"}}},
+		{"HabitCreatedMsg", msgs.HabitCreatedMsg{Habit: &domain.Habit{ID: "h2", Name: "New"}}},
+		{"HabitDeletedMsg", msgs.HabitDeletedMsg{ID: "h1"}},
+		{"GroupDeletedMsg", msgs.GroupDeletedMsg{ID: "g1"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			screen := newMockScreen(nil)
+			a := appWithReadyState(screen)
+
+			a.Update(tt.msg)
+
+			if screen.lastMsg == nil {
+				t.Fatalf("expected %s to be forwarded to active screen", tt.name)
+			}
+		})
+	}
+}
+
+func TestMultiplePushPop_Sequence(t *testing.T) {
+	screenA := newMockScreen(nil)
+	a := appWithScreen(screenA)
+
+	// Push B.
+	screenB := newMockScreen(nil)
+	updated, _ := a.Update(msgs.PushScreenMsg{Screen: screenB})
+	a = updated.(app.App)
+
+	// Push C.
+	screenC := newMockScreen(nil)
+	updated, _ = a.Update(msgs.PushScreenMsg{Screen: screenC})
+	a = updated.(app.App)
+
+	// Pop C -- B should be active.
+	updated, _ = a.Update(msgs.PopScreenMsg{})
+	a = updated.(app.App)
+	screenB.lastMsg = nil
+	probe := tea.WindowSizeMsg{Width: 42, Height: 42}
+	a.Update(probe)
+	if screenB.lastMsg == nil {
+		t.Fatal("after popping C, B should be active")
+	}
+
+	// Pop B -- A should be active.
+	updated, _ = a.Update(msgs.PopScreenMsg{})
+	a = updated.(app.App)
+	screenA.lastMsg = nil
+	a.Update(probe)
+	if screenA.lastMsg == nil {
+		t.Fatal("after popping B, A should be active")
+	}
+
+	// Push D on top of A.
+	screenD := newMockScreen(nil)
+	updated, _ = a.Update(msgs.PushScreenMsg{Screen: screenD})
+	a = updated.(app.App)
+	screenD.lastMsg = nil
+	a.Update(probe)
+	if screenD.lastMsg == nil {
+		t.Fatal("D should be active after pushing on top of A")
+	}
+
+	// Pop D -- A should be active again.
+	updated, _ = a.Update(msgs.PopScreenMsg{})
+	a = updated.(app.App)
+	screenA.lastMsg = nil
+	a.Update(probe)
+	if screenA.lastMsg == nil {
+		t.Fatal("after popping D, A should be active again")
+	}
+}
+
 // --- helpers ---
 
 // appWithScreen creates an App that is "ready" with one screen on the stack.
