@@ -39,7 +39,7 @@ func TestGroupsAndHabits(t *testing.T) {
 					{ID: "h1", Name: "Aaa"},
 				},
 			}
-			json.NewEncoder(w).Encode(payload)
+			_ = json.NewEncoder(w).Encode(payload)
 		}))
 
 		groups, habits, err := c.GroupsAndHabits(context.Background())
@@ -95,7 +95,7 @@ func TestCreateGroup(t *testing.T) {
 				t.Errorf("Content-Type = %q, want %q", ct, "application/json")
 			}
 			group := domain.Group{ID: "g1", Name: "Morning"}
-			json.NewEncoder(w).Encode(group)
+			_ = json.NewEncoder(w).Encode(group)
 		}))
 
 		g, err := c.CreateGroup(context.Background(), "Morning")

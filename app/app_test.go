@@ -58,7 +58,7 @@ func TestPushScreen(t *testing.T) {
 	screen2 := newMockScreen(nil)
 
 	updated, _ := a.Update(msgs.PushScreenMsg{Screen: screen2})
-	a = updated.(app.App)
+	_ = updated.(app.App)
 
 	// Should show screen2's view.
 	v := a.View()
@@ -83,10 +83,10 @@ func TestPopScreen_WithMultiple(t *testing.T) {
 	a := appWithScreen(screen1)
 	screen2 := newMockScreen(nil)
 	updated, _ := a.Update(msgs.PushScreenMsg{Screen: screen2})
-	a = updated.(app.App)
+	_ = updated.(app.App)
 
 	updated, _ = a.Update(msgs.PopScreenMsg{})
-	a = updated.(app.App)
+	_ = updated.(app.App)
 
 	// After pop, should show screen1's view.
 	v := a.View()
@@ -99,7 +99,7 @@ func TestPopScreen_WithCmd(t *testing.T) {
 	a := appWithScreen(newMockScreen(nil))
 	screen2 := newMockScreen(nil)
 	updated, _ := a.Update(msgs.PushScreenMsg{Screen: screen2})
-	a = updated.(app.App)
+	_ = updated.(app.App)
 
 	followUp := func() tea.Msg { return "follow-up" }
 	_, cmd := a.Update(msgs.PopScreenMsg{Cmd: followUp})
@@ -169,7 +169,7 @@ func TestCheckInResultMsg_MergesAndForwards(t *testing.T) {
 
 	updatedHabit := &domain.Habit{ID: "h1", Name: "Updated"}
 	updated, _ := a.Update(msgs.CheckInResultMsg{Habit: updatedHabit})
-	a = updated.(app.App)
+	_ = updated.(app.App)
 
 	if screen.lastMsg == nil {
 		t.Fatal("expected CheckInResultMsg to be forwarded to active screen")
@@ -185,7 +185,7 @@ func TestHabitCreatedMsg_AddsAndForwards(t *testing.T) {
 
 	newHabit := &domain.Habit{ID: "h2", Name: "New"}
 	updated, _ := a.Update(msgs.HabitCreatedMsg{Habit: newHabit})
-	a = updated.(app.App)
+	_ = updated.(app.App)
 
 	if screen.lastMsg == nil {
 		t.Fatal("expected HabitCreatedMsg to be forwarded to active screen")
@@ -200,7 +200,7 @@ func TestHabitDeletedMsg_RemovesAndForwards(t *testing.T) {
 	a := appWithReadyState(screen)
 
 	updated, _ := a.Update(msgs.HabitDeletedMsg{ID: "h1"})
-	a = updated.(app.App)
+	_ = updated.(app.App)
 
 	if screen.lastMsg == nil {
 		t.Fatal("expected HabitDeletedMsg to be forwarded to active screen")
@@ -215,7 +215,7 @@ func TestGroupDeletedMsg_RemovesAndForwards(t *testing.T) {
 	a := appWithReadyState(screen)
 
 	updated, _ := a.Update(msgs.GroupDeletedMsg{ID: "g1"})
-	a = updated.(app.App)
+	_ = updated.(app.App)
 
 	if screen.lastMsg == nil {
 		t.Fatal("expected GroupDeletedMsg to be forwarded to active screen")

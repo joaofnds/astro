@@ -19,7 +19,7 @@ func TestCreateTokenFunc(t *testing.T) {
 			if ct := r.Header.Get("Content-Type"); ct != "application/text" {
 				t.Errorf("Content-Type = %q, want %q", ct, "application/text")
 			}
-			w.Write([]byte("new-token-abc"))
+			_, _ = w.Write([]byte("new-token-abc"))
 		}))
 		t.Cleanup(srv.Close)
 

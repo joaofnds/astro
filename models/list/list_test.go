@@ -124,7 +124,7 @@ func TestCheckInResultMsg(t *testing.T) {
 
 	checkedIn := &domain.Habit{ID: "h1", Name: "Run", Activities: []domain.Activity{{ID: "a1"}}}
 	updated, cmd := m.Update(msgs.CheckInResultMsg{Habit: checkedIn})
-	m = updated.(list.List)
+	_ = updated.(list.List)
 
 	if cmd == nil {
 		t.Error("expected non-nil cmd (status message)")

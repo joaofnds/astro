@@ -34,7 +34,7 @@ func TestListHabits(t *testing.T) {
 				{ID: "2", Name: "Zzz"},
 				{ID: "1", Name: "Aaa"},
 			}
-			json.NewEncoder(w).Encode(habits)
+			_ = json.NewEncoder(w).Encode(habits)
 		}))
 		t.Cleanup(srv.Close)
 		c := NewClient(srv.URL, "test-token", WithHTTPClient(srv.Client()))
@@ -74,7 +74,7 @@ func TestListHabits(t *testing.T) {
 
 	t.Run("invalid JSON returns decode error", func(t *testing.T) {
 		c := newHabitsTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.Write([]byte("not json"))
+			_, _ = w.Write([]byte("not json"))
 		}))
 
 		_, err := c.ListHabits(context.Background())
@@ -111,7 +111,7 @@ func TestCreateHabit(t *testing.T) {
 					{ID: "a1", Desc: "earlier", CreatedAt: earlier},
 				},
 			}
-			json.NewEncoder(w).Encode(h)
+			_ = json.NewEncoder(w).Encode(h)
 		}))
 
 		h, err := c.CreateHabit(context.Background(), "Read books")
@@ -168,7 +168,7 @@ func TestGetHabit(t *testing.T) {
 					{ID: "a1", Desc: "earlier", CreatedAt: earlier},
 				},
 			}
-			json.NewEncoder(w).Encode(h)
+			_ = json.NewEncoder(w).Encode(h)
 		}))
 
 		h, err := c.GetHabit(context.Background(), "h1")
@@ -408,7 +408,7 @@ func TestCheckIn(t *testing.T) {
 						{ID: "a1", Desc: "checked in", CreatedAt: now},
 					},
 				}
-				json.NewEncoder(w).Encode(h)
+				_ = json.NewEncoder(w).Encode(h)
 			default:
 				t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
 				w.WriteHeader(http.StatusNotFound)
@@ -438,10 +438,10 @@ func TestCheckIn(t *testing.T) {
 		var getCalled bool
 
 		c := newHabitsTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			switch {
-			case r.Method == "POST":
+			switch r.Method {
+			case "POST":
 				w.WriteHeader(http.StatusInternalServerError)
-			case r.Method == "GET":
+			case "GET":
 				getCalled = true
 				w.WriteHeader(http.StatusOK)
 			}

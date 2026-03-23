@@ -77,10 +77,7 @@ func Momentum(activities []Activity) int {
 	idx := 0
 	day := date.TruncateDay(activities[idx].CreatedAt)
 
-	for {
-		if idx >= len(activities) || day.After(date.Today()) {
-			break
-		}
+	for idx < len(activities) && !day.After(date.Today()) {
 
 		if date.SameDay(activities[idx].CreatedAt, day) {
 			for idx < len(activities) && date.SameDay(activities[idx].CreatedAt, day) {

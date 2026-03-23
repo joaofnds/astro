@@ -84,7 +84,7 @@ func TestLoadAll_Success(t *testing.T) {
 			Groups: []*domain.Group{{ID: "g1", Name: "Group 1"}},
 			Habits: []*domain.Habit{{ID: "h1", Name: "Habit 1"}},
 		}
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	}))
 	defer srv.Close()
 
@@ -107,7 +107,7 @@ func TestLoadAll_Success(t *testing.T) {
 func TestLoadAll_Error(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("server error"))
+		_, _ = w.Write([]byte("server error"))
 	}))
 	defer srv.Close()
 
@@ -130,7 +130,7 @@ func TestCreateHabit_Success(t *testing.T) {
 			http.NotFound(w, r)
 			return
 		}
-		json.NewEncoder(w).Encode(domain.Habit{ID: "h1", Name: "New Habit"})
+		_ = json.NewEncoder(w).Encode(domain.Habit{ID: "h1", Name: "New Habit"})
 	}))
 	defer srv.Close()
 
@@ -150,7 +150,7 @@ func TestCreateHabit_Success(t *testing.T) {
 func TestCreateHabit_Error(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("error"))
+		_, _ = w.Write([]byte("error"))
 	}))
 	defer srv.Close()
 
@@ -196,7 +196,7 @@ func TestUpdateHabit_Success(t *testing.T) {
 		case r.Method == http.MethodPatch && r.URL.Path == "/habits/h1":
 			w.WriteHeader(http.StatusNoContent)
 		case r.Method == http.MethodGet && r.URL.Path == "/habits/h1":
-			json.NewEncoder(w).Encode(domain.Habit{ID: "h1", Name: "Updated"})
+			_ = json.NewEncoder(w).Encode(domain.Habit{ID: "h1", Name: "Updated"})
 		default:
 			http.NotFound(w, r)
 		}
@@ -223,7 +223,7 @@ func TestCheckIn_Success(t *testing.T) {
 		case r.Method == http.MethodPost && r.URL.Path == "/habits/h1":
 			w.WriteHeader(http.StatusOK)
 		case r.Method == http.MethodGet && r.URL.Path == "/habits/h1":
-			json.NewEncoder(w).Encode(domain.Habit{ID: "h1", Name: "My Habit"})
+			_ = json.NewEncoder(w).Encode(domain.Habit{ID: "h1", Name: "My Habit"})
 		default:
 			http.NotFound(w, r)
 		}
@@ -249,7 +249,7 @@ func TestCreateGroup_Success(t *testing.T) {
 			http.NotFound(w, r)
 			return
 		}
-		json.NewEncoder(w).Encode(domain.Group{ID: "g1", Name: "New Group"})
+		_ = json.NewEncoder(w).Encode(domain.Group{ID: "g1", Name: "New Group"})
 	}))
 	defer srv.Close()
 

@@ -18,7 +18,7 @@ func Init(tokenFilePath, apiBaseURL string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("could not open token file: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	token, err := io.ReadAll(f)
 	if err != nil {
