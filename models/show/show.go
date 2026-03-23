@@ -182,13 +182,13 @@ func (m Show) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, msgs.PushScreen(textinput.New("Check-In Description", "", "checkin", m.habit.ID, m.width))
 
 		case key.Matches(msg, m.keys.Edit):
-			if activity, err := m.habit.LatestActivityOnDate(m.selectedDate()); err == nil {
+			if activity, err := m.habit.LatestActivityOnDate(m.selectedDate()); err == nil && activity.ID != "pending" {
 				return m, msgs.PushScreen(textinput.New("New Description", activity.Desc, "checkin-edit", activity.ID, m.width))
 			}
 
 		case key.Matches(msg, m.keys.Delete):
 			activity, err := m.habit.LatestActivityOnDate(m.selectedDate())
-			if err != nil {
+			if err != nil || activity.ID == "pending" {
 				break
 			}
 			m.statusMsg = "Deleting activity..."

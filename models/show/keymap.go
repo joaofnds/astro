@@ -50,7 +50,7 @@ func NewKeymap() keymap {
 			key.WithHelp("?", "help"),
 		),
 		Quit: key.NewBinding(
-			key.WithKeys("q"),
+			key.WithKeys("q", "esc"),
 			key.WithHelp("q", "go back"),
 		),
 		Up: key.NewBinding(
