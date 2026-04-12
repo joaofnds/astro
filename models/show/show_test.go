@@ -183,14 +183,20 @@ func TestKeyQ_ReturnsPopScreen(t *testing.T) {
 
 func TestKeyJ_MovesSelectionDown(t *testing.T) {
 	m := newTestShow(t, testHabit())
-	v1 := m.View().Content
+
+	// Move up first so we have room to move down. On Saturdays the initial
+	// cursor lands at the last grid index and pressing 'j' clamps.
+	keyK := tea.KeyPressMsg(tea.Key{Code: 'k', Text: "k"})
+	updated, _ := m.Update(keyK)
+	m = updated.(show.Show)
+	vUp := m.View().Content
 
 	keyJ := tea.KeyPressMsg(tea.Key{Code: 'j', Text: "j"})
-	updated, _ := m.Update(keyJ)
+	updated, _ = m.Update(keyJ)
 	m = updated.(show.Show)
 
-	v2 := m.View().Content
-	if v1 == v2 {
+	vDown := m.View().Content
+	if vUp == vDown {
 		t.Fatal("expected View to change after pressing 'j' (down)")
 	}
 }
