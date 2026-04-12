@@ -30,32 +30,39 @@ func fitter(min, max, buckets int) func(n int) int {
 	}
 }
 
-func ShortLineHistogram(activities []Activity, days int) string {
-	hist := make([]int, days)
-	start := date.Today().AddDate(0, 0, 1-days)
-
-	min, max := 0, 0
-	for i := len(activities) - 1; i >= 0; i-- {
-		a := activities[i]
-
-		if start.After(a.CreatedAt) {
-			break
+// histBuckets counts activities into `size` day buckets indexed by local
+// calendar-day offset from start. hist[i] is the number of activities whose
+// local day equals start's local day + i. Activities outside
+// [start, start+size) are ignored. `start` must already be at local midnight.
+//
+// Each activity's CreatedAt is converted to local time before the day-offset
+// is computed. The backend stores CreatedAt in UTC, but date.DiffInDays
+// truncates each argument in its own Location — mixing a local-midnight start
+// with a UTC CreatedAt produces off-by-one errors at the local-midnight
+// boundary, which is exactly the activity-graph bug this fix addresses.
+func histBuckets(start time.Time, activities []Activity, size int) ([]int, int) {
+	hist := make([]int, size)
+	max := 0
+	for _, a := range activities {
+		if a.CreatedAt.Before(start) {
+			continue
 		}
-
-		diffInDays := date.DiffInDays(start, a.CreatedAt)
-
-		hist[diffInDays]++
-
-		if hist[diffInDays] > max {
-			max = hist[diffInDays]
+		diff := date.DiffInDays(start, a.CreatedAt.Local())
+		if diff >= size {
+			continue
 		}
-
-		if hist[diffInDays] < min {
-			min = hist[diffInDays]
+		hist[diff]++
+		if hist[diff] > max {
+			max = hist[diff]
 		}
 	}
+	return hist, max
+}
 
-	fit := fitter(min, max, len(colors)-1)
+func ShortLineHistogram(activities []Activity, days int) string {
+	start := date.Today().AddDate(0, 0, 1-days)
+	hist, max := histBuckets(start, activities, days)
+	fit := fitter(0, max, len(colors)-1)
 
 	var s strings.Builder
 	s.Grow(len(hist) * 30)
@@ -66,27 +73,8 @@ func ShortLineHistogram(activities []Activity, days int) string {
 }
 
 func Histogram(t time.Time, activities []Activity, selected int) string {
-	hist := make([]int, config.TimeFrameInDays)
-	min, max := 0, 0
-	for _, a := range activities {
-		if a.CreatedAt.Before(t) {
-			continue
-		}
-		diffInDays := date.DiffInDays(t, a.CreatedAt)
-		if diffInDays < config.TimeFrameInDays {
-			hist[diffInDays]++
-
-			if hist[diffInDays] > max {
-				max = hist[diffInDays]
-			}
-
-			if hist[diffInDays] < min {
-				min = hist[diffInDays]
-			}
-		}
-	}
-
-	fit := fitter(min, max, len(colors)-1)
+	hist, max := histBuckets(t, activities, config.TimeFrameInDays)
+	fit := fitter(0, max, len(colors)-1)
 
 	var s strings.Builder
 	s.Grow(config.TimeFrameInDays * 30)
