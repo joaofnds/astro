@@ -18,9 +18,9 @@ import (
 // testModel is a minimal tea.Model for testing PushScreen.
 type testModel struct{}
 
-func (testModel) Init() tea.Cmd                           { return nil }
-func (testModel) Update(tea.Msg) (tea.Model, tea.Cmd)     { return testModel{}, nil }
-func (testModel) View() tea.View                          { return tea.NewView("") }
+func (testModel) Init() tea.Cmd                       { return nil }
+func (testModel) Update(tea.Msg) (tea.Model, tea.Cmd) { return testModel{}, nil }
+func (testModel) View() tea.View                      { return tea.NewView("") }
 
 func TestPushScreen(t *testing.T) {
 	m := testModel{}
@@ -135,7 +135,7 @@ func TestCreateHabit_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.CreateHabit(context.Background(), client,"New Habit")
+	cmd := msgs.CreateHabit(context.Background(), client, "New Habit")
 	msg := cmd()
 
 	created, ok := msg.(msgs.HabitCreatedMsg)
@@ -155,7 +155,7 @@ func TestCreateHabit_Error(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.CreateHabit(context.Background(), client,"fail")
+	cmd := msgs.CreateHabit(context.Background(), client, "fail")
 	msg := cmd()
 
 	apiErr, ok := msg.(msgs.APIErrorMsg)
@@ -178,7 +178,7 @@ func TestDeleteHabit_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.DeleteHabit(context.Background(), client,"h1")
+	cmd := msgs.DeleteHabit(context.Background(), client, "h1")
 	msg := cmd()
 
 	deleted, ok := msg.(msgs.HabitDeletedMsg)
@@ -204,7 +204,7 @@ func TestUpdateHabit_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.UpdateHabit(context.Background(), client,"h1", "Updated")
+	cmd := msgs.UpdateHabit(context.Background(), client, "h1", "Updated")
 	msg := cmd()
 
 	updated, ok := msg.(msgs.HabitUpdatedMsg)
@@ -231,7 +231,7 @@ func TestCheckIn_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.CheckIn(context.Background(), client,"h1", "done", now)
+	cmd := msgs.CheckIn(context.Background(), client, "h1", "done", now)
 	msg := cmd()
 
 	result, ok := msg.(msgs.CheckInResultMsg)
@@ -254,7 +254,7 @@ func TestCreateGroup_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.CreateGroup(context.Background(), client,"New Group")
+	cmd := msgs.CreateGroup(context.Background(), client, "New Group")
 	msg := cmd()
 
 	created, ok := msg.(msgs.GroupCreatedMsg)
@@ -277,7 +277,7 @@ func TestDeleteGroup_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.DeleteGroup(context.Background(), client,"g1")
+	cmd := msgs.DeleteGroup(context.Background(), client, "g1")
 	msg := cmd()
 
 	deleted, ok := msg.(msgs.GroupDeletedMsg)
@@ -300,7 +300,7 @@ func TestAddToGroup_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.AddToGroup(context.Background(), client,"h1", "g1")
+	cmd := msgs.AddToGroup(context.Background(), client, "h1", "g1")
 	msg := cmd()
 
 	added, ok := msg.(msgs.AddedToGroupMsg)
@@ -323,7 +323,7 @@ func TestRemoveFromGroup_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.RemoveFromGroup(context.Background(), client,"h1", "g1")
+	cmd := msgs.RemoveFromGroup(context.Background(), client, "h1", "g1")
 	msg := cmd()
 
 	removed, ok := msg.(msgs.RemovedFromGroupMsg)
@@ -346,7 +346,7 @@ func TestUpdateActivity_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.UpdateActivity(context.Background(), client,"h1", "a1", "updated desc")
+	cmd := msgs.UpdateActivity(context.Background(), client, "h1", "a1", "updated desc")
 	msg := cmd()
 
 	updated, ok := msg.(msgs.ActivityUpdatedMsg)
@@ -369,7 +369,7 @@ func TestDeleteActivity_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv)
-	cmd := msgs.DeleteActivity(context.Background(), client,"h1", "a1")
+	cmd := msgs.DeleteActivity(context.Background(), client, "h1", "a1")
 	msg := cmd()
 
 	deleted, ok := msg.(msgs.ActivityDeletedMsg)
